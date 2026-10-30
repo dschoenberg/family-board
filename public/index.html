@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Family Board</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23171717'/%3E%3Cpath d='M8 16 16 9l8 7v10H8Z' fill='%2365c487'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="/style.css">
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <main id="board">
+      <aside class="photo-panel" aria-label="Photos, time and weather">
+        <div class="photo-stage" aria-hidden="true"><img id="photo-a" alt=""><img id="photo-b" alt=""></div>
+        <div class="shade"></div>
+        <div id="photo-message" class="photo-message">Loading your photos…</div>
+        <header class="clock-block"><div class="clock"><span id="time">—:—</span><span id="seconds"></span></div><div id="date" class="date"></div></header>
+        <section id="weather" class="weather" aria-label="Weather"></section>
+        <div id="photo-date" class="photo-date" aria-live="off"></div>
+        <div id="photo-status" class="photo-status"></div>
+      </aside>
+      <section class="calendar-panel" aria-label="Family calendar">
+        <div class="calendar-top"><div id="legend" class="legend"></div><span id="connection" role="status"></span></div>
+        <div id="weekdays" class="weekdays" aria-hidden="true"></div>
+        <div id="calendar" class="calendar" tabindex="0" aria-label="Calendar events; scroll to see more weeks"><div class="calendar-loading">Loading your calendars…</div></div>
+        <footer id="source-status" class="source-status" role="status"></footer>
+      </section>
+    </main>
+  </body>
+</html>

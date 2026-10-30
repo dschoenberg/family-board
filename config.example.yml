@@ -1,0 +1,39 @@
+# Copy to config.yml. This private file is never served by the web server.
+server:
+  host: 127.0.0.1
+  port: 3000
+display:
+  timezone: America/Chicago
+  photoPanelPercent: 38
+  showSeconds: true
+photos:
+  provider: google-shared-album
+  albumUrl: ""
+  changeEverySeconds: 60
+  refreshEveryMinutes: 30
+  shuffle: true
+  fit: cover
+  fallbackDirectory: ./photos
+  maxCachedPhotos: 150
+  maxCacheMegabytes: 400
+calendar:
+  weeks: 3
+  weekStartsOn: sunday
+  refreshEveryMinutes: 5
+  showLocation: true
+  calendars:
+    - id: primary
+      name: Primary
+      color: "#65C487"
+      icalUrl: ""
+    - id: secondary
+      name: Secondary
+      color: "#73B5F3"
+      icalUrl: ""
+weather:
+  latitude: null
+  longitude: null
+  temperatureUnit: fahrenheit
+  windSpeedUnit: mph
+  forecastDays: 4
+  refreshEveryMinutes: 15

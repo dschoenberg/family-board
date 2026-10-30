@@ -1,0 +1,93 @@
+# Family Board
+
+A local dashboard for a Raspberry Pi and monitor: photo slideshow, clock/date, weather, and a family calendar. The server and all private data stay on the device.
+
+## Run on your computer
+
+Use **Node.js 24 LTS, version 24.11 or newer**. With nvm: `nvm install 24 && nvm use 24`.
+
+```sh
+npm ci
+# For a new checkout only: cp config.example.yml config.yml
+npm start
+```
+
+Open **http://localhost:3000**. There is no frontend build step. Node 24 runs the server's TypeScript directly. `npm run dev` restarts the server after server code edits; refresh the browser after frontend edits.
+
+Keep calendar feeds and photo album links in a private `config.yml`. That file, `data/`, and local photos are ignored by Git. Copy your private config to the Pi separately from the public repository. No cloud hosting is needed.
+
+## Configure
+
+Edit `config.yml`, then restart the server. On the Pi: `sudo systemctl restart family-board`.
+
+Each entry under `calendar.calendars` has a unique `id`, a display `name`, a six-digit hex `color`, and an `icalUrl`. Add further entries in the same format. In Google Calendar, get **Settings → your calendar → Integrate calendar → Secret address in iCal format**. Ordinary calendar page URLs do not work. An empty link disables that calendar's data and shows its configuration status.
+
+The example config uses **America/Chicago**, a Sunday-start calendar, up to three weeks, and a 38% photo panel. All-day end dates are exclusive; recurring events, exclusions, moved/canceled occurrences, overnight events, and daylight-saving changes are handled by the calendar reader. Calendar weeks grow to fit their events, titles, and locations within the available screen height. The board shows three weeks when they fit, otherwise two or one. If even one week is too tall, scroll the calendar area with a mouse, touchpad, touchscreen, or keyboard.
+
+Set `weather.latitude` and `weather.longitude` in your private config to enable current conditions, wind, sunrise and sunset, and a four-day forecast from Open-Meteo. The current moon phase and illuminated percentage are calculated locally with SunCalc. Degrees Fahrenheit and mph are the defaults. Both coordinates must be set together. No API key is needed for this personal-use forecast endpoint.
+
+Weather data: [Open-Meteo](https://open-meteo.com/), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The board formats the supplied data for display.
+
+Shared calendar invitations appear once per day when their iCalendar UID and occurrence start match across configured calendars. The event displays a colored dot for each calendar it belongs to, and the hover text lists those calendar names. Distinct invitations with the same title stay separate. When copies have different details, the first calendar in configuration order supplies the displayed title and primary color; a later copy can fill a missing location.
+
+### Photos
+
+`photos.albumUrl` is a Google Photos **share link**. The reader accesses the album's shared web page directly; it does not use a third-party relay. It supports pagination through large albums. This is an unofficial integration and may need repair if Google changes its shared-page format. It requires the album to remain accessible through the link.
+
+The board shuffles the full photo list, changes photos every 60 seconds, and refreshes the album list every 30 minutes. Images are downloaded on demand at display size, with the next image preloaded. Videos are omitted. `fit: cover` fills the panel and crops as needed; `fit: contain` shows the entire photo.
+
+A small caption shows each Google album photo's date when the shared album supplies one. Google exposes this as an image update timestamp, so it may differ from the original capture date if the photo was edited. Local images and older cached album manifests may have no date; the caption remains hidden until dated album metadata is available.
+
+The disk image cache is limited to **150 photos / 400 MiB** by default, evicting the least recently used files. It is a display cache, not a backup. On a network failure, the display retains the current photo and uses downloaded photos after restarting. Full offline slideshow coverage grows as photos are viewed. A refresh may take up to 90 seconds for a large album.
+
+For a fully local slideshow, set `photos.provider: local` and add JPG, PNG, WebP, or GIF files to `photos/`. That directory is also the fallback when no Google album photos are available. Files are read directly, so their original storage is outside the remote-image cache limit. Individual local images must be under 20 MiB.
+
+### Privacy and cache
+
+Only the rendered calendar details, calendar names/colors, weather, and local photo paths are returned to the browser. Feed URLs, album URLs, configuration, raw ICS feeds, and the remote photo manifest are not served. The server binds to loopback only and does not enable CORS. No analytics, external fonts, or external scripts are loaded.
+
+Cached event data and photos are stored privately under `data/`. Failed refreshes keep the last successful response and show a small status message. A successful refresh replaces old feed data. Cache files are not encrypted; use appropriate device/storage access controls for a shared computer. Old source caches can remain after removing a calendar, so stop the server and remove `data/` if you want to clear all cached private data.
+
+## Install on Raspberry Pi
+
+Target: **64-bit Raspberry Pi OS with a desktop**, HDMI monitor, network access, and a normal user with sudo access. The installer is intended for Pi 4/5; confirm the actual model and screen resolution before deployment. Do not run the installer on your Mac.
+
+1. Copy this folder to the Pi, including your private `config.yml`. Exclude `node_modules`, `.npm-cache`, and `.runtime` from the copy. Keep `data/` only if you want the existing cache.
+2. From a terminal on the Pi, run:
+
+   ```sh
+   bash scripts/setup-pi.sh
+   ```
+
+3. Reboot when ready: `sudo reboot`.
+
+The script installs Chromium and an official, checksum-verified Node 24 ARM64 runtime under `.runtime/`, installs locked dependencies, enables the `family-board` system service, and adds the kiosk launcher to your desktop startup. It enables desktop auto-login and disables screen blanking. It preserves unrelated labwc startup entries and can be rerun. The app stays in the project folder, so don't move it after installation without rerunning setup.
+
+The kiosk waits for the local server before opening Chromium and restarts Chromium if it exits. The server is separately restarted by systemd if it fails. Chromium runs with its normal browser sandbox. Its separate profile is under `data/chromium`, with a 100 MiB browser disk-cache target in addition to the app photo cache.
+
+Configure monitor orientation/resolution in Raspberry Pi OS. The board uses the available screen dimensions. Landscape most closely matches the reference; a narrow browser window stacks the photo panel above the calendar for previewing on smaller screens.
+
+```sh
+# Logs / status
+journalctl -u family-board -f
+systemctl status family-board
+
+# Apply config changes
+sudo systemctl restart family-board
+
+# Update dependencies after copying updated source + lockfile
+PATH="$PWD/.runtime/node/bin:$PATH" npm ci --omit=dev --ignore-scripts
+sudo systemctl restart family-board
+```
+
+To temporarily leave kiosk mode, stop the launcher process (`pkill -f '[s]cripts/kiosk.sh'`) and close Chromium. To disable boot startup, disable the service (`sudo systemctl disable --now family-board`) and remove its marked entry from `~/.config/labwc/autostart`, or remove `~/.config/autostart/family-board.desktop` on an X11 desktop. Existing desktop settings can be restored through Raspberry Pi Configuration.
+
+## Verification
+
+```sh
+npm run check          # TypeScript checks (development dependencies required)
+npm test               # Calendar behavior and offline cache tests
+npm run check:sources  # Live feed/album checks; reports counts, not private contents
+```
+
+The source check downloads one sample photo and reads each configured feed. Tests cover all-day boundaries, daylight-saving recurrence, moved and canceled events, overnight events, week starts, config validation, calendar cache recovery, and photo cache eviction. The app has been previewed locally at 1920×1080. Pi boot, kiosk restart, and long-running hardware behavior still need verification on the actual device.
