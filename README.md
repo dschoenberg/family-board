@@ -122,7 +122,7 @@ curl -fsS http://localhost:3000/health
 sudo reboot
 ```
 
-The script enables desktop auto-login and attempts to disable screen blanking. It preserves existing LXDE autostart lines and adds the Family Board launcher once. After reboot, check `journalctl -u family-board -b -n 80` if the board does not appear. With only 512 MB of RAM and a single-core CPU, startup and photo changes may be slow; test the server and kiosk together before treating the installation as complete. To disable the kiosk later, comment out the `@.../scripts/kiosk.sh` line in `~/.config/lxsession/LXDE-pi/autostart` and run `sudo systemctl disable --now family-board` to stop the server at boot.
+The script enables desktop auto-login and attempts to disable screen blanking. It preserves existing LXDE autostart lines and adds the Family Board launcher once. The Pi Zero service waits 120 seconds before attempting its Git pull and starting the server, giving Wi-Fi and DNS time to settle; the kiosk opens after the server responds. Rerun `bash scripts/setup-pi-zero.sh` after updating the installer to apply service changes. After reboot, check `journalctl -u family-board -b -n 80` if the board does not appear. With only 512 MB of RAM and a single-core CPU, startup and photo changes may be slow; test the server and kiosk together before treating the installation as complete. To disable the kiosk later, comment out the `@.../scripts/kiosk.sh` line in `~/.config/lxsession/LXDE-pi/autostart` and run `sudo systemctl disable --now family-board` to stop the server at boot.
 
 ## Verification
 

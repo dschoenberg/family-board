@@ -15,6 +15,18 @@ fi
 export PATH="$RUNTIME/node/bin:$PATH"
 cd "$APP_DIR"
 
+# The Pi Zero service waits for Wi-Fi and DNS to settle before any network work.
+# Other installations leave this unset and start immediately.
+BOOT_DELAY="${BOARD_BOOT_DELAY_SECONDS:-0}"
+if [[ ! "$BOOT_DELAY" =~ ^[0-9]+$ ]]; then
+  echo 'BOARD_BOOT_DELAY_SECONDS must be a nonnegative number of seconds.' >&2
+  exit 1
+fi
+if [[ "$BOOT_DELAY" != 0 ]]; then
+  echo "Waiting ${BOOT_DELAY}s before the Git update and server startup."
+  sleep "$BOOT_DELAY"
+fi
+
 # A fast-forward pull preserves local history. Ignored config.yml and data/ stay local.
 # Network trouble or uncommitted tracked edits must not prevent an offline board.
 GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"

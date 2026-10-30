@@ -33,10 +33,14 @@ test('Pi boot updates safely, installs changed packages, and starts the server',
     await stub(join(runtime, 'npm'), 'echo npm >> "$BOOT_EVENTS"; [ "${BOOT_NPM_FAIL:-0}" -ne 0 ] || mkdir -p node_modules; exit "${BOOT_NPM_FAIL:-0}"');
     await stub(join(commands, 'git'), 'case "$1" in rev-parse) pwd;; diff) exit "${BOOT_DIRTY:-0}";; pull) echo pull >> "$BOOT_EVENTS"; count=$(grep -c "^pull$" "$BOOT_EVENTS"); [ "$count" -le "${BOOT_PULL_FAIL_COUNT:-0}" ] && exit 1; exit "${BOOT_PULL_FAIL:-0}";; esac');
     await stub(join(commands, 'timeout'), 'shift; "$@"');
-    await stub(join(commands, 'sleep'), 'exit 0');
+    await stub(join(commands, 'sleep'), '[ "${BOOT_LOG_SLEEP:-0}" -eq 1 ] && echo "sleep:$1" >> "$BOOT_EVENTS"; exit 0');
+
+    assert.equal(run({ BOARD_BOOT_DELAY_SECONDS: '120', BOOT_LOG_SLEEP: '1' }).status, 0);
+    assert.deepEqual(await logged(), ['sleep:120', 'pull', 'npm', 'node']);
+    await writeFile(events, '');
 
     assert.equal(run().status, 0);
-    assert.deepEqual(await logged(), ['pull', 'npm', 'node']);
+    assert.deepEqual(await logged(), ['pull', 'node']);
     await writeFile(events, '');
 
     assert.equal(run({ BOOT_PULL_FAIL: '1' }).status, 0);

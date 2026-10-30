@@ -101,6 +101,7 @@ User=$(id -un)
 WorkingDirectory=$APP_DIR
 ExecStart=$APP_DIR/scripts/start-pi.sh
 Environment=NODE_ENV=production
+Environment=BOARD_BOOT_DELAY_SECONDS=120
 Restart=always
 RestartSec=5
 UMask=0077
