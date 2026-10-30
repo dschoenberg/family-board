@@ -125,8 +125,10 @@ function renderStatuses() {
   $('photo-status').textContent = ['stale', 'error'].includes(board.status.photos.state) ? board.status.photos.message : '';
 }
 async function refresh() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000);
   try {
-    const response = await fetch('/api/board', { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+    const response = await fetch('/api/board', { cache: 'no-store', signal: controller.signal });
     if (!response.ok) throw new Error();
     const next = await response.json();
     board = next;
@@ -142,6 +144,7 @@ async function refresh() {
     renderStatuses(); updateClock();
     $('connection').textContent = '';
   } catch { $('connection').textContent = 'Reconnecting…'; }
+  finally { clearTimeout(timeout); }
   setTimeout(refresh, board?.status.photos.state === 'loading' || Object.values(board?.status.calendars ?? {}).some(s => s.state === 'loading') ? 3000 : 30000);
 }
 let mouseTimer;

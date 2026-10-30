@@ -56,7 +56,7 @@ body.mouse-active { cursor: auto; }
 .events { flex: 1; }
 .event { margin-bottom: .6vh; padding: .12em .23em .18em; font-size: clamp(11px, 1.18vw, 1.7vh); line-height: 1.28; overflow-wrap: anywhere; }
 .event .event-dot { display: inline-block; background: var(--color); width: .43em; height: .43em; border-radius: 50%; margin-right: .25em; vertical-align: .07em; }
-.event.all-day { border-left: 2px solid var(--color); background: color-mix(in srgb, var(--color) 24%, #151515); }
+.event.all-day { border-left: 2px solid var(--color); background: #26322a; background: color-mix(in srgb, var(--color) 24%, #151515); }
 .event-location { opacity: .68; font-size: .9em; }
 .event-days { font-size: .83em; opacity: .72; }
 .source-status { min-width: 0; align-self: center; font-size: clamp(9px, .7vw, 12px); text-align: right; color: #8c8c8c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
