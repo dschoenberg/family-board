@@ -9,7 +9,7 @@ NPM="$RUNTIME/node/bin/npm"
 LOCK_MARKER="$RUNTIME/package-lock.sha256"
 
 if [[ ! -x "$NODE" || ! -x "$NPM" ]]; then
-  echo 'Node is not installed. Run bash scripts/setup-pi.sh first.' >&2
+  echo 'Node is not installed. Run the setup script for your Pi model first.' >&2
   exit 1
 fi
 export PATH="$RUNTIME/node/bin:$PATH"
@@ -21,10 +21,21 @@ GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 if [[ "$GIT_ROOT" == "$APP_DIR" ]]; then
   if ! git diff --quiet || ! git diff --cached --quiet; then
     echo 'Skipping Git update because tracked files have local changes.' >&2
-  elif timeout 45s env GIT_TERMINAL_PROMPT=0 git pull --ff-only --quiet; then
-    echo 'Git update complete.'
   else
-    echo 'Git update unavailable; starting from the existing checkout.' >&2
+    # Wi-Fi and DNS can become usable shortly after network-online.target.
+    # Keep the retries bounded so an offline board still starts.
+    for attempt in 1 2 3 4; do
+      if timeout 10s env GIT_TERMINAL_PROMPT=0 git pull --ff-only --quiet; then
+        echo 'Git update complete.'
+        break
+      fi
+      if [[ "$attempt" -eq 4 ]]; then
+        echo 'Git update unavailable after four attempts; starting from the existing checkout.' >&2
+      else
+        echo "Git update unavailable (attempt $attempt of 4); retrying shortly." >&2
+        sleep 5
+      fi
+    done
   fi
 else
   echo 'No Git checkout found; starting from the existing files.' >&2
