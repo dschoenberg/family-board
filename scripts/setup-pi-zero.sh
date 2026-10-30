@@ -98,8 +98,8 @@ After=network-online.target
 [Service]
 Type=simple
 User=$(id -un)
-WorkingDirectory="$APP_DIR"
-ExecStart="$APP_DIR/scripts/start-pi.sh"
+WorkingDirectory=$APP_DIR
+ExecStart=$APP_DIR/scripts/start-pi.sh
 Environment=NODE_ENV=production
 Restart=always
 RestartSec=5
