@@ -40,7 +40,7 @@ export class PhotoStore {
       if (this.config.photos.provider === 'local') photos = await this.localPhotos();
       else {
         if (!this.config.photos.albumUrl) throw new Error('Album not configured');
-        const found = await fetchImageUrls(this.config.photos.albumUrl, AbortSignal.timeout(90000));
+        const found = await fetchImageUrls(this.config.photos.albumUrl, AbortSignal.timeout(this.config.photos.refreshTimeoutSeconds * 1000));
         if (!found) throw new Error('Album response could not be read');
         photos = found.filter(p => !p.isVideo).map(p => ({ id: hash(p.uid), url: p.url, date: Number.isFinite(p.imageUpdateDate) && p.imageUpdateDate > 0 ? p.imageUpdateDate : undefined }));
       }

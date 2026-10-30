@@ -44,7 +44,7 @@ The board shuffles the full photo list, changes photos every 60 seconds, and ref
 
 A small caption shows each Google album photo's date when the shared album supplies one. Google exposes this as an image update timestamp, so it may differ from the original capture date if the photo was edited. Local images and older cached album manifests may have no date; the caption remains hidden until dated album metadata is available.
 
-The disk image cache is limited to **150 photos / 400 MiB** by default, evicting the least recently used files. It is a display cache, not a backup. On a network failure, the display retains the current photo and uses downloaded photos after restarting. Full offline slideshow coverage grows as photos are viewed. A refresh may take up to 90 seconds for a large album.
+The disk image cache is limited to **150 photos / 400 MiB** by default, evicting the least recently used files. It is a display cache, not a backup. On a network failure, the display retains the current photo and uses downloaded photos after restarting. Full offline slideshow coverage grows as photos are viewed. A refresh has a 120-second timeout by default. Set `photos.refreshTimeoutSeconds` in the private config to change it; existing configs without the setting use 120 seconds.
 
 For a fully local slideshow, set `photos.provider: local` and add JPG, PNG, WebP, or GIF files to `photos/`. That directory is also the fallback when no Google album photos are available. Files are read directly, so their original storage is outside the remote-image cache limit. Individual local images must be under 20 MiB.
 

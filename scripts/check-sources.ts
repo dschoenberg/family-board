@@ -14,7 +14,7 @@ const checks = config.calendar.calendars.map(async cal => {
 });
 checks.push((async () => {
   try {
-    const photos = await fetchImageUrls(config.photos.albumUrl, AbortSignal.timeout(90000));
+    const photos = await fetchImageUrls(config.photos.albumUrl, AbortSignal.timeout(config.photos.refreshTimeoutSeconds * 1000));
     const first = photos?.find(p => !p.isVideo);
     if (!first) throw new Error('No photos');
     const response = await fetch(`${first.url}=w1000-h1600`, { signal: AbortSignal.timeout(30000) });

@@ -11,6 +11,7 @@ photos:
   albumUrl: ""
   changeEverySeconds: 60
   refreshEveryMinutes: 30
+  refreshTimeoutSeconds: 120
   shuffle: true
   fit: contain
   fallbackDirectory: ./photos

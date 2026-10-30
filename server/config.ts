@@ -7,7 +7,7 @@ export type CalendarConfig = { id: string; name: string; color: string; icalUrl:
 export type Config = {
   server: { host: string; port: number };
   display: { timezone: string; photoPanelPercent: number; showSeconds: boolean };
-  photos: { provider: 'google-shared-album' | 'local'; albumUrl: string; changeEverySeconds: number; refreshEveryMinutes: number; shuffle: boolean; fit: 'cover' | 'contain'; fallbackDirectory: string; maxCachedPhotos: number; maxCacheMegabytes: number };
+  photos: { provider: 'google-shared-album' | 'local'; albumUrl: string; changeEverySeconds: number; refreshEveryMinutes: number; refreshTimeoutSeconds: number; shuffle: boolean; fit: 'cover' | 'contain'; fallbackDirectory: string; maxCachedPhotos: number; maxCacheMegabytes: number };
   calendar: { weeks: number; weekStartsOn: 'sunday' | 'monday'; refreshEveryMinutes: number; showLocation: boolean; calendars: CalendarConfig[] };
   guestWifi?: { ssid: string; password: string; security: 'WPA' | 'nopass'; hidden: boolean };
   weather: { latitude: number | null; longitude: number | null; temperatureUnit: 'fahrenheit' | 'celsius'; windSpeedUnit: 'mph' | 'kmh'; forecastDays: number; refreshEveryMinutes: number };
@@ -33,6 +33,8 @@ export function validateConfig(value: unknown): Config {
   }
   need(range(c.photos.changeEverySeconds, 5, 86400), 'photos.changeEverySeconds');
   need(range(c.photos.refreshEveryMinutes, 1, 1440), 'photos.refreshEveryMinutes');
+  if (c.photos.refreshTimeoutSeconds === undefined) c.photos.refreshTimeoutSeconds = 120;
+  need(Number.isInteger(c.photos.refreshTimeoutSeconds) && range(c.photos.refreshTimeoutSeconds, 1, 3600), 'photos.refreshTimeoutSeconds');
   need(typeof c.photos.shuffle === 'boolean' && ['cover', 'contain'].includes(c.photos.fit), 'photos.shuffle / fit');
   need(typeof c.photos.fallbackDirectory === 'string', 'photos.fallbackDirectory');
   need(Number.isInteger(c.photos.maxCachedPhotos) && range(c.photos.maxCachedPhotos, 2, 5000), 'photos.maxCachedPhotos');
