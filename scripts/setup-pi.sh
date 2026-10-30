@@ -19,7 +19,11 @@ if ! command -v raspi-config >/dev/null; then echo 'This installer targets Raspb
 echo 'Installing Family Board, its boot service, and full-screen Chromium autostart.'
 echo 'Desktop auto-login will be enabled and screen blanking disabled for this display.'
 sudo apt-get update
-sudo apt-get install -y chromium curl ca-certificates xz-utils util-linux
+sudo apt-get install -y chromium curl ca-certificates xz-utils util-linux coreutils git
+if [[ "$(git -C "$APP_DIR" rev-parse --show-toplevel 2>/dev/null || true)" != "$APP_DIR" ]]; then
+  echo 'Clone the Git repository onto the Pi before running this installer.' >&2
+  exit 1
+fi
 mkdir -p "$APP_DIR/.runtime" "$APP_DIR/data"
 chmod 600 "$APP_DIR/config.yml"
 chmod 700 "$APP_DIR/data"
@@ -37,19 +41,21 @@ ln -sfn "$RUNTIME/${ARCHIVE%.tar.xz}" "$RUNTIME/node"
 export PATH="$RUNTIME/node/bin:$PATH"
 cd "$APP_DIR"
 npm ci --omit=dev --ignore-scripts --cache "$APP_DIR/.npm-cache" --no-audit --no-fund
+sha256sum "$APP_DIR/package-lock.json" | awk '{print $1}' > "$RUNTIME/package-lock.sha256"
 node scripts/board-url.ts >/dev/null
-chmod +x "$APP_DIR/scripts/kiosk.sh"
+chmod +x "$APP_DIR/scripts/kiosk.sh" "$APP_DIR/scripts/start-pi.sh"
 
 cat > "$RUNTIME/family-board.service" <<EOF
 [Unit]
 Description=Family Board local dashboard
-After=network.target
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=simple
 User=$(id -un)
 WorkingDirectory="$APP_DIR"
-ExecStart="$RUNTIME/node/bin/node" "$APP_DIR/server/index.ts"
+ExecStart="$APP_DIR/scripts/start-pi.sh"
 Environment=NODE_ENV=production
 Restart=always
 RestartSec=5

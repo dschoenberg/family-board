@@ -14,7 +14,7 @@ npm start
 
 Open **http://localhost:3000**. There is no frontend build step. Node 24 runs the server's TypeScript directly. `npm run dev` restarts the server after server code edits; refresh the browser after frontend edits.
 
-Keep calendar feeds and photo album links in a private `config.yml`. That file, `data/`, and local photos are ignored by Git. Copy your private config to the Pi separately from the public repository. No cloud hosting is needed.
+Keep calendar feeds and photo album links in a private `config.yml`. That file, `data/`, and local photos are ignored by Git. Copy your private config to the Pi separately from the public repository. No cloud hosting is needed. The Pi's automatic update only sees commits pushed to GitHub.
 
 ## Configure
 
@@ -56,34 +56,49 @@ Cached event data and photos are stored privately under `data/`. Failed refreshe
 
 ## Install on Raspberry Pi
 
-Target: **64-bit Raspberry Pi OS with a desktop**, HDMI monitor, network access, and a normal user with sudo access. The installer is intended for Pi 4/5; confirm the actual model and screen resolution before deployment. Do not run the installer on your Mac.
+Target: **64-bit Raspberry Pi OS with a desktop**, HDMI monitor, network access, and a normal user with sudo access. The installer is intended for Pi 4/5; confirm the actual model and screen resolution before deployment. Run these commands on the Pi, not on your Mac.
 
-1. Copy this folder to the Pi, including your private `config.yml`. Exclude `node_modules`, `.npm-cache`, and `.runtime` from the copy. Keep `data/` only if you want the existing cache.
-2. From a terminal on the Pi, run:
+1. Install Git and clone the public repository:
+
+   ```sh
+   sudo apt-get update
+   sudo apt-get install -y git
+   git clone https://github.com/dschoenberg/family-board.git ~/family-board
+   cd ~/family-board
+   ```
+
+2. Create the private config. Copy your existing `config.yml` to `~/family-board/config.yml` through a private transfer, or start from the example and fill in your calendar, photo, weather, and guest Wi-Fi settings. Never add `config.yml` to Git.
+
+   ```sh
+   test -e config.yml || cp config.example.yml config.yml
+   chmod 600 config.yml
+   nano config.yml
+   ```
+
+3. Install Node, Chromium, packages, and the boot service by running the installer. **You do not need to install Node separately**: this script downloads the official Node 24 ARM64 archive, checks its SHA-256 checksum, and installs it under `.runtime/node` without replacing the system's Node. It also installs Chromium through `apt`.
 
    ```sh
    bash scripts/setup-pi.sh
+   .runtime/node/bin/node --version
+   sudo reboot
    ```
 
-3. Reboot when ready: `sudo reboot`.
+The installer enables the `family-board` systemd service, adds the kiosk launcher to desktop startup, enables desktop auto-login, and disables screen blanking. It preserves unrelated labwc startup entries and can be rerun. Keep the checkout in the same directory after installation; rerun the installer if you move it or update the service definition.
 
-The script installs Chromium and an official, checksum-verified Node 24 ARM64 runtime under `.runtime/`, installs locked dependencies, enables the `family-board` system service, and adds the kiosk launcher to your desktop startup. It enables desktop auto-login and disables screen blanking. It preserves unrelated labwc startup entries and can be rerun. The app stays in the project folder, so don't move it after installation without rerunning setup.
-
-The kiosk waits for the local server before opening Chromium and restarts Chromium if it exits. The server is separately restarted by systemd if it fails. Chromium runs with its normal browser sandbox. Its separate profile is under `data/chromium`, with a 100 MiB browser disk-cache target in addition to the app photo cache.
+At each boot, systemd waits for network startup, then `scripts/start-pi.sh` attempts a **fast-forward-only** Git pull. If the network is unavailable or tracked files have local edits, the board starts from the existing checkout. When `package-lock.json` has changed, the script runs `npm ci` with the local npm cache before starting the server. A failed package installation stops the service so systemd can retry; the private config and cached data are not reset. The kiosk waits for the local server before opening Chromium and restarts Chromium if it exits. Chromium uses its normal browser sandbox and a separate profile under `data/chromium`.
 
 Configure monitor orientation/resolution in Raspberry Pi OS. The board uses the available screen dimensions. Landscape most closely matches the reference; a narrow browser window stacks the photo panel above the calendar for previewing on smaller screens.
 
 ```sh
 # Logs / status
-journalctl -u family-board -f
+journalctl -u family-board -b -f
 systemctl status family-board
 
-# Apply config changes
+# Pull any new commit, install changed packages, and restart after config changes
 sudo systemctl restart family-board
 
-# Update dependencies after copying updated source + lockfile
-PATH="$PWD/.runtime/node/bin:$PATH" npm ci --omit=dev --ignore-scripts
-sudo systemctl restart family-board
+# Confirm the installed Node version
+.runtime/node/bin/node --version
 ```
 
 To temporarily leave kiosk mode, stop the launcher process (`pkill -f '[s]cripts/kiosk.sh'`) and close Chromium. To disable boot startup, disable the service (`sudo systemctl disable --now family-board`) and remove its marked entry from `~/.config/labwc/autostart`, or remove `~/.config/autostart/family-board.desktop` on an X11 desktop. Existing desktop settings can be restored through Raspberry Pi Configuration.
