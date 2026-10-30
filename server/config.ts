@@ -8,7 +8,7 @@ export type Config = {
   server: { host: string; port: number };
   display: { timezone: string; photoPanelPercent: number };
   photos: { provider: 'google-shared-album' | 'local'; albumUrl: string; changeEverySeconds: number; refreshEveryMinutes: number; refreshTimeoutSeconds: number; shuffle: boolean; fit: 'cover' | 'contain'; fallbackDirectory: string; maxCachedPhotos: number; maxCacheMegabytes: number };
-  calendar: { weeks: number; weekStartsOn: 'sunday' | 'monday'; refreshEveryMinutes: number; showLocation: boolean; calendars: CalendarConfig[] };
+  calendar: { weeks: number; startOn: 'week' | 'today'; weekStartsOn: 'sunday' | 'monday'; refreshEveryMinutes: number; showLocation: boolean; calendars: CalendarConfig[] };
   guestWifi?: { ssid: string; password: string; security: 'WPA' | 'nopass'; hidden: boolean };
   weather: { latitude: number | null; longitude: number | null; temperatureUnit: 'fahrenheit' | 'celsius'; windSpeedUnit: 'mph' | 'kmh'; forecastDays: number; refreshEveryMinutes: number };
 };
@@ -39,6 +39,8 @@ export function validateConfig(value: unknown): Config {
   need(Number.isInteger(c.photos.maxCachedPhotos) && range(c.photos.maxCachedPhotos, 2, 5000), 'photos.maxCachedPhotos');
   need(range(c.photos.maxCacheMegabytes, 10, 10000), 'photos.maxCacheMegabytes');
   need(Number.isInteger(c.calendar?.weeks) && range(c.calendar.weeks, 1, 6), 'calendar.weeks');
+  if (c.calendar.startOn === undefined) c.calendar.startOn = 'week';
+  need(['week', 'today'].includes(c.calendar.startOn), 'calendar.startOn');
   need(['sunday', 'monday'].includes(c.calendar.weekStartsOn), 'calendar.weekStartsOn');
   need(range(c.calendar.refreshEveryMinutes, 1, 1440), 'calendar.refreshEveryMinutes');
   if (c.calendar.showLocation === undefined) c.calendar.showLocation = false;

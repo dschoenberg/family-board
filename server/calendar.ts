@@ -12,7 +12,7 @@ export type DisplayEvent = { id: string; calendarId: string; calendars: { id: st
 export function calendarWindow(config: Config, now: DateTime = DateTime.now()) {
   const today = now.setZone(config.display.timezone).startOf('day');
   const offset = config.calendar.weekStartsOn === 'sunday' ? today.weekday % 7 : today.weekday - 1;
-  const from = today.minus({ days: offset });
+  const from = config.calendar.startOn === 'today' ? today : today.minus({ days: offset });
   const to = from.plus({ weeks: config.calendar.weeks });
   return { today, from, to };
 }

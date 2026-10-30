@@ -53,6 +53,27 @@ test('Monday-start configuration uses the correct seven-day window', () => {
   assert.equal(days.at(-1)?.date, '2026-11-01');
 });
 
+test('existing configs without startOn keep the week boundary', () => {
+  const c = structuredClone(config);
+  delete (c.calendar as Partial<typeof c.calendar>).startOn;
+  validateConfig(c);
+  assert.equal(c.calendar.startOn, 'week');
+  assert.equal(calendarDays(c, new Map(), now)[0].date, '2026-10-25');
+});
+
+test('today-start configuration begins with today and keeps seven days per row', () => {
+  const c = structuredClone(config);
+  c.calendar.startOn = 'today';
+  c.calendar.weekStartsOn = 'monday';
+  c.calendar.weeks = 2;
+  const days = calendarDays(c, new Map(), now);
+  assert.equal(days.length, 14);
+  assert.equal(days[0].date, '2026-10-29');
+  assert.equal(days[0].today, true);
+  assert.equal(days[7].date, '2026-11-05');
+  assert.equal(days.at(-1)?.date, '2026-11-11');
+});
+
 test('shared invitations appear once with both calendar memberships, even with different titles', () => {
   const showingLocations = structuredClone(config);
   showingLocations.calendar.showLocation = true;
