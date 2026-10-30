@@ -147,3 +147,15 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Family Board local data and private configuration
+.npm-cache/
+.runtime/
+config.yml
+config.yaml
+config.local.yml
+config.local.yaml
+data/
+photos/*
+!photos/.gitkeep
+.DS_Store
