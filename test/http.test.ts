@@ -13,6 +13,7 @@ test('HTTP server serves the board but never config or raw cached sources', asyn
   c.server.port = 23000 + Math.floor(Math.random() * 10000);
   c.calendar.calendars = [];
   c.photos.provider = 'local'; c.photos.albumUrl = 'https://photos.app.goo.gl/private-test-value'; c.photos.fallbackDirectory = folder;
+  c.guestWifi = { ssid: 'Test Guest', password: 'guest-test-password', security: 'WPA', hidden: false };
   const path = join(folder, 'config.yml');
   await writeFile(path, stringify(c));
   const child = spawn(process.execPath, ['server/index.ts'], { cwd: root, env: { ...process.env, BOARD_CONFIG: path }, stdio: 'pipe' });
@@ -28,6 +29,12 @@ test('HTTP server serves the board but never config or raw cached sources', asyn
     const board = await (await fetch(base + '/api/board')).text();
     assert.equal(board.includes('private-test-value'), false);
     assert.equal(board.includes('albumUrl'), false);
+    assert.equal(board.includes('guest-test-password'), false);
+    assert.equal(JSON.parse(board).guestWifi.enabled, true);
+    const wifiQr = await fetch(base + '/guest-wifi.svg');
+    assert.equal(wifiQr.status, 200);
+    assert.match(wifiQr.headers.get('content-type') ?? '', /image\/svg\+xml/);
+    assert.equal((await wifiQr.text()).includes('guest-test-password'), false);
     for (const path of ['/config.yml', '/config.example.yml', '/data/photos/manifest.json', '/server/config.ts', '/package.json', '/.env']) {
       assert.equal((await fetch(base + path)).status, 404, path);
     }

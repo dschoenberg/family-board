@@ -3,12 +3,14 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { loadConfig, root } from './config.ts';
 import { Sources } from './sources.ts';
+import { wifiQrSvg } from './wifi.ts';
 
 let config;
 try { config = loadConfig(); } catch (error) { console.error((error as Error).message); process.exit(1); }
 process.env.TZ = config.display.timezone;
 const sources = new Sources(config);
 await sources.init();
+const guestWifiQr = config.guestWifi?.ssid ? await wifiQrSvg(config.guestWifi) : null;
 const files: Record<string, [string, string]> = {
   '/': ['index.html', 'text/html; charset=utf-8'],
   '/app.js': ['app.js', 'text/javascript; charset=utf-8'],
@@ -29,6 +31,11 @@ const server = createServer(async (req, res) => {
     const path = new URL(req.url ?? '/', 'http://localhost').pathname;
     if (path === '/health') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ ok: true })); return; }
     if (path === '/api/board') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(await sources.board())); return; }
+    if (path === '/guest-wifi.svg') {
+      if (!guestWifiQr) { res.writeHead(404); res.end(); return; }
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.end(req.method === 'HEAD' ? undefined : guestWifiQr); return;
+    }
     if (/^\/photos\/[a-f0-9]{32}$/.test(path)) {
       const photo = await sources.photos.get(path.slice('/photos/'.length));
       if (!photo) { res.writeHead(404); res.end(); return; }

@@ -130,6 +130,8 @@ async function refresh() {
     if (!response.ok) throw new Error();
     const next = await response.json();
     board = next;
+    $('guest-wifi').hidden = !board.guestWifi?.enabled;
+    if (board.guestWifi?.enabled && !$('wifi-qr').getAttribute('src')) $('wifi-qr').src = '/guest-wifi.svg';
     document.documentElement.style.setProperty('--photo-width', `${board.display.photoPanelPercent}%`);
     const calendarKey = JSON.stringify(board.calendar);
     if (calendarKey !== lastCalendar) { renderCalendar(); lastCalendar = calendarKey; }

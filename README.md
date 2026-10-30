@@ -22,11 +22,17 @@ Edit `config.yml`, then restart the server. On the Pi: `sudo systemctl restart f
 
 Each entry under `calendar.calendars` has a unique `id`, a display `name`, a six-digit hex `color`, and an `icalUrl`. Add further entries in the same format. In Google Calendar, get **Settings → your calendar → Integrate calendar → Secret address in iCal format**. Ordinary calendar page URLs do not work. An empty link disables that calendar's data and shows its configuration status.
 
-The example config uses **America/Chicago**, a Sunday-start calendar, up to three weeks, and a 38% photo panel. All-day end dates are exclusive; recurring events, exclusions, moved/canceled occurrences, overnight events, and daylight-saving changes are handled by the calendar reader. Calendar weeks grow to fit their events, titles, and locations within the available screen height. The board shows three weeks when they fit, otherwise two or one. If even one week is too tall, scroll the calendar area with a mouse, touchpad, touchscreen, or keyboard.
+Event locations are hidden by default. Set `calendar.showLocation: true` in `config.yml` if you want them shown beneath event titles and in hover text.
+
+The example config uses **America/Chicago**, a Sunday-start calendar, up to three weeks, and a 38% photo panel. All-day end dates are exclusive; recurring events, exclusions, moved/canceled occurrences, overnight events, and daylight-saving changes are handled by the calendar reader. Calendar weeks grow to fit their events and titles, including locations when enabled, within the available screen height. The board shows three weeks when they fit, otherwise two or one. If even one week is too tall, scroll the calendar area with a mouse, touchpad, touchscreen, or keyboard.
 
 Set `weather.latitude` and `weather.longitude` in your private config to enable current conditions, wind, sunrise and sunset, and a four-day forecast from Open-Meteo. The current moon phase and illuminated percentage are calculated locally with SunCalc. Degrees Fahrenheit and mph are the defaults. Both coordinates must be set together. No API key is needed for this personal-use forecast endpoint.
 
 Weather data: [Open-Meteo](https://open-meteo.com/), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The board formats the supplied data for display.
+
+### Guest Wi-Fi QR code
+
+The lower-right calendar area can display a QR code that lets guests join your Wi-Fi. In the private `config.yml`, set `guestWifi.ssid` and `guestWifi.password`; use `security: WPA` for WPA2/WPA3 Personal or `security: nopass` for an open network. Set `hidden: true` only if the SSID is hidden. Leave `ssid` empty to hide the QR code. Restart the server after changing these settings. The QR code is generated locally and includes the Wi-Fi password in scannable form; anyone who can see it can join the guest network. The password is not included in `/api/board` or committed to Git.
 
 Shared calendar invitations appear once per day when their iCalendar UID and occurrence start match across configured calendars. The event displays a colored dot for each calendar it belongs to, and the hover text lists those calendar names. Distinct invitations with the same title stay separate. When copies have different details, the first calendar in configuration order supplies the displayed title and primary color; a later copy can fill a missing location.
 
@@ -34,7 +40,7 @@ Shared calendar invitations appear once per day when their iCalendar UID and occ
 
 `photos.albumUrl` is a Google Photos **share link**. The reader accesses the album's shared web page directly; it does not use a third-party relay. It supports pagination through large albums. This is an unofficial integration and may need repair if Google changes its shared-page format. It requires the album to remain accessible through the link.
 
-The board shuffles the full photo list, changes photos every 60 seconds, and refreshes the album list every 30 minutes. Images are downloaded on demand at display size, with the next image preloaded. Videos are omitted. `fit: cover` fills the panel and crops as needed; `fit: contain` shows the entire photo.
+The board shuffles the full photo list, changes photos every 60 seconds, and refreshes the album list every 30 minutes. Images are downloaded on demand at display size, with the next image preloaded. Videos are omitted. `fit: contain` scales each photo to show the full image while preserving its aspect ratio; unused space in the panel remains dark. Set `fit: cover` if you prefer the panel filled with cropping.
 
 A small caption shows each Google album photo's date when the shared album supplies one. Google exposes this as an image update timestamp, so it may differ from the original capture date if the photo was edited. Local images and older cached album manifests may have no date; the caption remains hidden until dated album metadata is available.
 

@@ -100,6 +100,7 @@ export class Sources {
       calendar: { weeks: this.config.calendar.weeks, weekStartsOn: this.config.calendar.weekStartsOn, calendars: this.config.calendar.calendars.map(({ id, name, color }) => ({ id, name, color })), days: calendarDays(this.config, this.feeds) },
       photos: { items: await this.photos.availablePhotos(), changeEverySeconds: this.config.photos.changeEverySeconds, shuffle: this.config.photos.shuffle, fit: this.config.photos.fit },
       weather: { data: this.weather, temperatureUnit: this.config.weather.temperatureUnit, windSpeedUnit: this.config.weather.windSpeedUnit, moon: getMoonIllumination(new Date()) },
+      guestWifi: { enabled: Boolean(this.config.guestWifi?.ssid) },
       status: { calendars: Object.fromEntries(this.statuses), photos: this.photos.status, weather: this.weatherStatus },
       date: DateTime.now().setZone(this.config.display.timezone).toISODate(),
     };

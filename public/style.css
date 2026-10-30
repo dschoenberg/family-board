@@ -6,35 +6,39 @@ body.mouse-active { cursor: auto; }
 #board { height: 100vh; height: 100dvh; width: 100vw; display: grid; grid-template-columns: var(--photo-width) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
 .photo-panel { position: relative; min-height: 0; overflow: hidden; isolation: isolate; background: #252623; }
 .photo-stage, .shade { position: absolute; inset: 0; z-index: -1; }
-.photo-stage img { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; opacity: 0; transition: opacity 1.6s ease; }
+.photo-stage img { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: contain; opacity: 0; transition: opacity 1.6s ease; }
 .photo-stage img.active { opacity: 1; }
 .shade { background: linear-gradient(180deg, #0005 0%, #0001 32%, #0003 50%, #0008 80%, #000b 100%); }
-.clock-block { padding: 3.4vh 2.9vw 0 1.5vw; text-align: right; text-shadow: 0 1px 5px #0004; }
-.clock { line-height: .98; white-space: nowrap; font-size: clamp(42px, 8.8vw, 13.2vh); font-weight: 200; letter-spacing: -.055em; font-variant-numeric: tabular-nums; }
+.clock-block { padding: 2.5vh 2.4vw 0 1.5vw; text-align: right; text-shadow: 0 1px 5px #0004; }
+.clock { line-height: .98; white-space: nowrap; font-size: clamp(38px, 7vw, 10.5vh); font-weight: 200; letter-spacing: -.055em; font-variant-numeric: tabular-nums; }
 #seconds { display: inline-block; vertical-align: top; font-size: .32em; letter-spacing: -.02em; margin-top: .08em; margin-left: .12em; min-width: 1.1em; }
-.date { margin-top: 2vh; font-size: clamp(15px, 2.65vw, 4.2vh); white-space: nowrap; font-weight: 300; }
+.date { margin-top: 1vh; font-size: clamp(14px, 2.1vw, 3.3vh); white-space: nowrap; font-weight: 300; }
 .photo-date { position: absolute; right: 1.1vw; bottom: .7vh; z-index: 1; font-size: clamp(10px, .75vw, 12px); line-height: 1.2; color: #fffd; text-shadow: 0 1px 4px #000c; }
 .photo-date:empty { display: none; }
 .photo-message { position: absolute; top: 45%; width: 100%; text-align: center; color: #ffffffb0; font-size: clamp(14px, 1.4vw, 22px); padding: 24px; }
 .photo-message.hidden { display: none; }
-.weather { position: absolute; right: 0; left: 0; bottom: 3vh; padding: 0 2.4vw; text-shadow: 0 1px 5px #0005; }
+.weather { position: absolute; right: 0; left: 0; bottom: 3vh; padding: 0 1.9vw; text-shadow: 0 1px 5px #0005; }
 .weather-unconfigured { text-align: right; color: #ffffffb0; font-size: clamp(13px, 1.25vw, 20px); line-height: 1.6; }
 .weather-unconfigured .label { display: block; font-size: .7em; letter-spacing: .17em; text-transform: uppercase; margin-bottom: .5em; }
-.weather-detail { display: flex; align-items: center; justify-content: flex-end; gap: .5em; font-size: clamp(15px, 1.7vw, 3.2vh); margin-bottom: 1.4vh; }
+.weather-detail { display: flex; align-items: center; justify-content: flex-end; gap: .4em; font-size: clamp(13px, 1.3vw, 2.6vh); margin-bottom: .6vh; }
 .weather-detail svg { width: 1.25em; height: 1.25em; }
-.astro-details { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: .5em 1.2em; font-size: clamp(12px, 1.1vw, 2.1vh); line-height: 1.3; }
-.solar-times { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .3em 1em; }
+.astro-details { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: .25em .7em; font-size: clamp(10px, .9vw, 1.7vh); line-height: 1.2; }
+.solar-times { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .2em .7em; }
 .solar-times > span, .moon-phase { display: inline-flex; align-items: center; gap: .3em; white-space: nowrap; }
-.solar-times svg, .moon-phase svg { width: 1.5em; height: 1.5em; flex-shrink: 0; }
-.current-weather { display: flex; align-items: center; justify-content: flex-end; gap: .07em; margin: 3.2vh 0 3vh; font-size: clamp(40px, 6vw, 10vh); font-weight: 200; line-height: 1; }
+.solar-times svg, .moon-phase svg { width: 1.3em; height: 1.3em; flex-shrink: 0; }
+.current-weather { display: flex; align-items: center; justify-content: flex-end; gap: .07em; margin: 1.3vh 0 1.3vh; font-size: clamp(34px, 4.8vw, 8vh); font-weight: 200; line-height: 1; }
 .current-weather svg { height: 1.25em; width: 1.35em; }
-.forecast { display: grid; grid-template-columns: repeat(var(--forecast-days, 4), minmax(0, 1fr)); gap: 1vw; text-align: center; }
-.forecast-label { border-radius: 20px; background: #ffffff45; font-size: clamp(11px, 1.3vw, 2.3vh); line-height: 1.6; text-transform: uppercase; }
-.forecast svg { width: 100%; height: 6.2vh; margin: 1.6vh 0 1vh; }
-.forecast-temps { font-size: clamp(13px, 1.7vw, 3vh); display: flex; justify-content: center; gap: .5em; }
+.forecast { display: grid; grid-template-columns: repeat(var(--forecast-days, 4), minmax(0, 1fr)); gap: .7vw; text-align: center; }
+.forecast-label { border-radius: 20px; background: #ffffff45; font-size: clamp(9px, 1.05vw, 1.8vh); line-height: 1.4; text-transform: uppercase; }
+.forecast svg { width: 100%; height: 4.8vh; margin: .8vh 0 .4vh; }
+.forecast-temps { font-size: clamp(11px, 1.35vw, 2.4vh); display: flex; justify-content: center; gap: .4em; }
 .forecast-temps span:last-child { opacity: .78; }
 .photo-status { position: absolute; bottom: .6vh; left: 1vw; right: 50%; font-size: 10px; color: #ddd; text-align: left; }
-.calendar-panel { min-width: 0; min-height: 0; overflow: hidden; display: grid; grid-template-rows: 5.2vh 7.2vh minmax(0,1fr) 2.6vh; background: #000; padding: 0 .6vw; }
+.calendar-panel { position: relative; min-width: 0; min-height: 0; overflow: hidden; display: grid; grid-template-rows: 5.2vh 7.2vh minmax(0,1fr) 2.6vh; background: #000; padding: 0 .6vw; }
+.wifi-card { position: absolute; z-index: 2; right: 1.4vw; bottom: 1.5vh; width: clamp(72px, 5.5vw, 103px); padding: 4px; background: #fff; color: #111; text-align: center; box-shadow: 0 3px 18px #000b; pointer-events: none; }
+.wifi-card[hidden] { display: none; }
+.wifi-card img { display: block; width: 100%; aspect-ratio: 1; }
+.wifi-card span { display: block; padding: 1px 0 2px; font-size: clamp(8px, .45vw, 10px); font-weight: 600; letter-spacing: .02em; }
 .calendar-top { display: flex; justify-content: space-between; align-items: center; min-width: 0; background: #171717; margin: 0 -.6vw; padding: 0 1.8vw; }
 .legend { display: flex; align-items: center; gap: 1.5em; flex-wrap: wrap; font-size: clamp(11px, 1vw, 17px); color: #d0d0d0; }
 .legend-label { font-size: .75em; color: #8e8e8e; text-transform: uppercase; }
@@ -59,9 +63,9 @@ body.mouse-active { cursor: auto; }
 #connection { color: #e5c282; font-size: 12px; }
 @media (max-aspect-ratio: 1/1) {
   #board { grid-template-columns: 1fr; grid-template-rows: 35% 65%; }
-  .clock-block { padding: 2vh 4vw; }
-  .clock { font-size: 10vh; }
-  .date { font-size: 3vh; }
+  .clock-block { padding: 1.5vh 3vw; }
+  .clock { font-size: 7.8vh; }
+  .date { font-size: 2.3vh; margin-top: .5vh; }
   .weather { width: 50%; left: 0; right: auto; bottom: 2vh; }
   .calendar-panel { grid-template-rows: 4vh 5vh minmax(0,1fr) 2vh; }
   .weekdays { font-size: 3vh; }
@@ -69,8 +73,8 @@ body.mouse-active { cursor: auto; }
   .day-date span { font-size: 4vh; }
   .day.today .day-date span { height: 5vh; min-width: 5vh; }
   .event { font-size: 12px; }
-  .current-weather { font-size: 4vh; margin: 0; }
-  .forecast svg { height: 3vh; }
+  .current-weather { font-size: 3.2vh; margin: .3vh 0 .6vh; }
+  .forecast svg { height: 2.4vh; margin: .5vh 0 .2vh; }
   .weather-detail { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .photo-stage img { transition: none; } }

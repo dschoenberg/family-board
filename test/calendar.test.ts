@@ -54,13 +54,26 @@ test('Monday-start configuration uses the correct seven-day window', () => {
 });
 
 test('shared invitations appear once with both calendar memberships, even with different titles', () => {
+  const showingLocations = structuredClone(config);
+  showingLocations.calendar.showLocation = true;
   const primary = parseCalendar(calendar(event('shared-invite', 'DTSTART:20261029T170000Z\nDTEND:20261029T180000Z\nSUMMARY:Lunch')));
   const secondary = parseCalendar(calendar(event('shared-invite', 'DTSTART:20261029T170000Z\nDTEND:20261029T180000Z\nSUMMARY:Lunch with friends\nLOCATION:Cafe')));
-  const events = calendarDays(config, new Map([['primary', primary], ['secondary', secondary]]), now).flatMap(d => d.events);
+  const events = calendarDays(showingLocations, new Map([['primary', primary], ['secondary', secondary]]), now).flatMap(d => d.events);
   assert.equal(events.length, 1);
   assert.deepEqual(events[0].calendars, config.calendar.calendars.map(({id,name,color}) => ({id,name,color})));
   assert.equal(events[0].title, 'Lunch');
   assert.equal(events[0].location, 'Cafe');
+});
+
+test('locations are hidden by default and can be enabled explicitly', () => {
+  const feed = parseCalendar(calendar(event('location-test', 'DTSTART:20261029T170000Z\nDTEND:20261029T180000Z\nSUMMARY:Meeting\nLOCATION:Example Place')));
+  const withoutOption = structuredClone(config);
+  delete (withoutOption.calendar as Partial<typeof withoutOption.calendar>).showLocation;
+  validateConfig(withoutOption);
+  assert.equal(withoutOption.calendar.showLocation, false);
+  assert.equal(calendarDays(withoutOption, new Map([['primary', feed]]), now).flatMap(d => d.events)[0].location, '');
+  withoutOption.calendar.showLocation = true;
+  assert.equal(calendarDays(withoutOption, new Map([['primary', feed]]), now).flatMap(d => d.events)[0].location, 'Example Place');
 });
 
 test('unrelated invitations with the same title and time remain separate', () => {

@@ -9,6 +9,7 @@ export type Config = {
   display: { timezone: string; photoPanelPercent: number; showSeconds: boolean };
   photos: { provider: 'google-shared-album' | 'local'; albumUrl: string; changeEverySeconds: number; refreshEveryMinutes: number; shuffle: boolean; fit: 'cover' | 'contain'; fallbackDirectory: string; maxCachedPhotos: number; maxCacheMegabytes: number };
   calendar: { weeks: number; weekStartsOn: 'sunday' | 'monday'; refreshEveryMinutes: number; showLocation: boolean; calendars: CalendarConfig[] };
+  guestWifi?: { ssid: string; password: string; security: 'WPA' | 'nopass'; hidden: boolean };
   weather: { latitude: number | null; longitude: number | null; temperatureUnit: 'fahrenheit' | 'celsius'; windSpeedUnit: 'mph' | 'kmh'; forecastDays: number; refreshEveryMinutes: number };
 };
 
@@ -39,6 +40,7 @@ export function validateConfig(value: unknown): Config {
   need(Number.isInteger(c.calendar?.weeks) && range(c.calendar.weeks, 1, 6), 'calendar.weeks');
   need(['sunday', 'monday'].includes(c.calendar.weekStartsOn), 'calendar.weekStartsOn');
   need(range(c.calendar.refreshEveryMinutes, 1, 1440), 'calendar.refreshEveryMinutes');
+  if (c.calendar.showLocation === undefined) c.calendar.showLocation = false;
   need(typeof c.calendar.showLocation === 'boolean', 'calendar.showLocation');
   need(Array.isArray(c.calendar.calendars), 'calendar.calendars');
   const ids = new Set<string>();
@@ -54,6 +56,14 @@ export function validateConfig(value: unknown): Config {
       try { const u = new URL(cal.icalUrl); valid = u.protocol === 'https:' && u.hostname === 'calendar.google.com' && u.pathname.endsWith('.ics'); } catch {}
       need(valid, `${field}.icalUrl (Google HTTPS iCal feed)`);
     }
+  }
+  if (c.guestWifi !== undefined) {
+    const wifi = c.guestWifi;
+    need(wifi && typeof wifi.ssid === 'string' && Buffer.byteLength(wifi.ssid, 'utf8') <= 32, 'guestWifi.ssid');
+    need(typeof wifi.password === 'string' && wifi.password.length <= 128, 'guestWifi.password');
+    need(['WPA', 'nopass'].includes(wifi.security), 'guestWifi.security');
+    need(typeof wifi.hidden === 'boolean', 'guestWifi.hidden');
+    if (wifi.ssid && wifi.security === 'WPA') need(wifi.password.length >= 8, 'guestWifi.password');
   }
   const w = c.weather;
   need(w && (w.latitude === null && w.longitude === null || range(w.latitude, -90, 90) && range(w.longitude, -180, 180)), 'weather.latitude / longitude');

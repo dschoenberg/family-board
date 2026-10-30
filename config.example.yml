@@ -12,7 +12,7 @@ photos:
   changeEverySeconds: 60
   refreshEveryMinutes: 30
   shuffle: true
-  fit: cover
+  fit: contain
   fallbackDirectory: ./photos
   maxCachedPhotos: 150
   maxCacheMegabytes: 400
@@ -20,7 +20,7 @@ calendar:
   weeks: 3
   weekStartsOn: sunday
   refreshEveryMinutes: 5
-  showLocation: true
+  showLocation: false
   calendars:
     - id: primary
       name: Primary
@@ -30,6 +30,11 @@ calendar:
       name: Secondary
       color: "#73B5F3"
       icalUrl: ""
+guestWifi:
+  ssid: ""
+  password: ""
+  security: WPA
+  hidden: false
 weather:
   latitude: null
   longitude: null
