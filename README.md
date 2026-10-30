@@ -4,7 +4,7 @@ A local dashboard for a Raspberry Pi and monitor: photo slideshow, clock/date, w
 
 ## Run on your computer
 
-Use **Node.js 24 LTS, version 24.11 or newer**. With nvm: `nvm install 24 && nvm use 24`.
+Use **Node.js 24 LTS, version 24.11 or newer**, or **Node.js 22.18 or newer**. With nvm: `nvm install 24 && nvm use 24`.
 
 ```sh
 npm ci
@@ -12,7 +12,7 @@ npm ci
 npm start
 ```
 
-Open **http://localhost:3000**. There is no frontend build step. Node 24 runs the server's TypeScript directly. `npm run dev` restarts the server after server code edits; refresh the browser after frontend edits.
+Open **http://localhost:3000**. There is no frontend build step. Supported Node 22 and 24 releases run the server's TypeScript directly. `npm run dev` restarts the server after server code edits; refresh the browser after frontend edits.
 
 Keep calendar feeds and photo album links in a private `config.yml`. That file, `data/`, and local photos are ignored by Git. Copy your private config to the Pi separately from the public repository. No cloud hosting is needed. The Pi's automatic update only sees commits pushed to GitHub.
 
@@ -54,7 +54,7 @@ Only the rendered calendar details, calendar names/colors, weather, and local ph
 
 Cached event data and photos are stored privately under `data/`. Failed refreshes keep the last successful response and show a small status message. A successful refresh replaces old feed data. Cache files are not encrypted; use appropriate device/storage access controls for a shared computer. Old source caches can remain after removing a calendar, so stop the server and remove `data/` if you want to clear all cached private data.
 
-## Install on Raspberry Pi
+## Install on Raspberry Pi 4/5
 
 Target: **64-bit Raspberry Pi OS with a desktop**, HDMI monitor, network access, and a normal user with sudo access. The installer is intended for Pi 4/5; confirm the actual model and screen resolution before deployment. Run these commands on the Pi, not on your Mac.
 
@@ -102,6 +102,23 @@ sudo systemctl restart family-board
 ```
 
 To temporarily leave kiosk mode, stop the launcher process (`pkill -f '[s]cripts/kiosk.sh'`) and close Chromium. To disable boot startup, disable the service (`sudo systemctl disable --now family-board`) and remove its marked entry from `~/.config/labwc/autostart`, or remove `~/.config/autostart/family-board.desktop` on an X11 desktop. Existing desktop settings can be restored through Raspberry Pi Configuration.
+
+## Install on an original Pi Zero W
+
+Use `scripts/setup-pi-zero.sh` on a **32-bit ARMv6 Pi Zero or Zero W with Raspberry Pi OS Desktop and Chromium already installed**. This is a separate installer; the Pi 4/5 installer above keeps its 64-bit Node 24 setup. The Zero installer reuses your existing Chromium, installs a pinned community-built Node 22 ARMv6 binary under `.runtime/node` after checking its published SHA-256 checksum, and adds the kiosk launcher to the LXDE user autostart file. ARMv6 Node builds are [unofficial and minimally tested](https://unofficial-builds.nodejs.org/); verify the board on the actual device.
+
+On the Zero W, clone the repository and create the private config as in steps 1–2 above. Check that `curl`, `git`, `tar`, `xz`, `sha256sum`, `flock`, and `timeout` are installed. Then run:
+
+```sh
+cd ~/family-board
+bash scripts/setup-pi-zero.sh
+.runtime/node/bin/node --version
+systemctl status family-board
+curl -fsS http://localhost:3000/health
+sudo reboot
+```
+
+The script enables desktop auto-login and attempts to disable screen blanking. It preserves existing LXDE autostart lines and adds the Family Board launcher once. After reboot, check `journalctl -u family-board -b -n 80` if the board does not appear. With only 512 MB of RAM and a single-core CPU, startup and photo changes may be slow; test the server and kiosk together before treating the installation as complete. To disable the kiosk later, comment out the `@.../scripts/kiosk.sh` line in `~/.config/lxsession/LXDE-pi/autostart` and run `sudo systemctl disable --now family-board` to stop the server at boot.
 
 ## Verification
 
