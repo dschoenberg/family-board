@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 export type CalendarConfig = { id: string; name: string; color: string; icalUrl: string };
 export type Config = {
   server: { host: string; port: number };
-  display: { timezone: string; photoPanelPercent: number; showSeconds: boolean };
+  display: { timezone: string; photoPanelPercent: number };
   photos: { provider: 'google-shared-album' | 'local'; albumUrl: string; changeEverySeconds: number; refreshEveryMinutes: number; refreshTimeoutSeconds: number; shuffle: boolean; fit: 'cover' | 'contain'; fallbackDirectory: string; maxCachedPhotos: number; maxCacheMegabytes: number };
   calendar: { weeks: number; weekStartsOn: 'sunday' | 'monday'; refreshEveryMinutes: number; showLocation: boolean; calendars: CalendarConfig[] };
   guestWifi?: { ssid: string; password: string; security: 'WPA' | 'nopass'; hidden: boolean };
@@ -23,7 +23,6 @@ export function validateConfig(value: unknown): Config {
   need(Number.isInteger(c.server?.port) && range(c.server.port, 1024, 65535), 'server.port');
   need(typeof c.display?.timezone === 'string' && DateTime.now().setZone(c.display.timezone).isValid, 'display.timezone');
   need(range(c.display.photoPanelPercent, 20, 60), 'display.photoPanelPercent');
-  need(typeof c.display.showSeconds === 'boolean', 'display.showSeconds');
   need(['google-shared-album', 'local'].includes(c.photos?.provider), 'photos.provider');
   need(typeof c.photos.albumUrl === 'string', 'photos.albumUrl');
   if (c.photos.albumUrl) {

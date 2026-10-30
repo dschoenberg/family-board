@@ -1,4 +1,4 @@
-import { weatherIcon, weatherDescription, windIcon, sunriseIcon, sunsetIcon, formatSolarTime, moonPhaseName, moonPhaseIcon } from './weather.js';
+import { weatherIcon, weatherDescription, sunriseIcon, sunsetIcon, formatSolarTime, moonPhaseName, moonPhaseIcon } from './weather.js';
 import { visibleWeekCount } from './calendar-fit.js';
 
 const $ = id => document.getElementById(id);
@@ -9,25 +9,27 @@ function updateClock() {
   if (!board) return;
   const now = new Date();
   const options = { timeZone: board.display.timezone };
-  const parts = new Intl.DateTimeFormat('en-US', { ...options, hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).formatToParts(now);
+  const parts = new Intl.DateTimeFormat('en-US', { ...options, hour: 'numeric', minute: '2-digit', hour12: true }).formatToParts(now);
   const part = name => parts.find(p => p.type === name)?.value ?? '';
   $('time').textContent = `${part('hour')}:${part('minute')}`;
-  $('seconds').textContent = board.display.showSeconds ? part('second') : '';
-  $('date').textContent = new Intl.DateTimeFormat('en-US', { ...options, weekday: 'long', month: 'long', day: 'numeric' }).format(now);
 }
 function renderCalendar() {
   const calendar = board.calendar;
+  const forecasts = new Map((board.weather.data?.days ?? []).map(day => [day.date, day]));
   document.documentElement.style.setProperty('--weeks', calendar.weeks);
   $('legend').innerHTML = '<span class="legend-label">Legend</span>' + calendar.calendars.map(c => `<span class="legend-item"><i class="legend-dot" style="--color:${escape(c.color)}"></i>${escape(c.name)}</span>`).join('');
-  const labels = calendar.weekStartsOn === 'sunday' ? ['S','M','T','W','T','F','S'] : ['M','T','W','T','F','S','S'];
-  $('weekdays').innerHTML = labels.map(d => `<span>${d}</span>`).join('');
-  $('calendar').innerHTML = calendar.days.map(day => `<article class="day ${day.today ? 'today' : ''} ${day.past ? 'past' : ''}" aria-label="${escape(day.weekday + ', ' + day.month + ' ' + day.number)}${day.today ? ', today' : ''}">
-    <div class="day-date"><span>${escape(day.number === 1 && !day.today ? day.month : day.number)}</span></div>
+  $('calendar').innerHTML = calendar.days.map(day => {
+    const forecast = forecasts.get(day.date);
+    const condition = forecast ? weatherDescription(forecast.code) : '';
+    const forecastLabel = forecast ? `${condition}, high ${Math.round(forecast.high)} degrees, low ${Math.round(forecast.low)} degrees` : '';
+    return `<article class="day ${day.today ? 'today' : ''} ${day.past ? 'past' : ''}" aria-label="${escape(day.weekday + ', ' + day.month + ' ' + day.number)}${day.today ? ', today' : ''}${forecast ? ', ' + escape(forecastLabel) : ''}">
+    <div class="day-date"><div class="day-heading"><span class="day-weekday" aria-hidden="true">${escape(day.weekday[0])}</span><span class="day-number">${escape(day.number === 1 ? day.month : day.number)}</span></div>${forecast ? `<div class="day-forecast" title="${escape(forecastLabel)}">${weatherIcon(forecast.code)}<span class="day-temperatures"><b>H ${Math.round(forecast.high)}°</b><span>L ${Math.round(forecast.low)}°</span></span></div>` : ''}</div>
     <div class="events">${day.events.map(event => `<div class="event ${event.allDay ? 'all-day' : ''}" style="--color:${escape(event.color)}" title="${escape([event.time, event.title, event.location, event.calendars?.map(c => c.name).join(' + ')].filter(Boolean).join(' · '))}">
       <div class="event-title">${event.allDay && (event.calendars?.length ?? 1) === 1 ? '' : (event.calendars ?? [{color:event.color}]).map(c => `<i class="event-dot" style="--color:${escape(c.color)}"></i>`).join('')}${event.time ? escape(event.time) + ' ' : ''}${escape(event.title)}</div>
       ${event.totalDays > 1 ? `<div class="event-days">Day ${event.day}/${event.totalDays}</div>` : ''}
       ${event.location ? `<div class="event-location">${escape(event.location)}</div>` : ''}
-    </div>`).join('')}</div></article>`).join('');
+    </div>`).join('')}</div></article>`;
+  }).join('');
   scheduleCalendarFit();
 }
 function scheduleCalendarFit() {
@@ -65,18 +67,14 @@ function renderWeather() {
     return;
   }
   const current = weather.current;
-  const directions = ['N','NE','E','SE','S','SW','W','NW'];
   const today = weather.days.find(d => d.date === board.date);
   const moon = board.weather.moon;
   const moonName = moon && Number.isFinite(moon.phase) ? moonPhaseName(moon.phase) : '';
-  $('weather').innerHTML = `<div class="weather-detail">${Math.round(current.windSpeed)} ${escape(board.weather.windSpeedUnit === 'kmh' ? 'km/h' : 'mph')} ${directions[Math.round(current.windDirection / 45) % 8]} ${windIcon}</div>
+  $('weather').innerHTML = `<div class="current-weather" aria-label="${Math.round(current.temperature)} degrees, ${weatherDescription(current.code)}"><span class="current-temperature">${Math.round(current.temperature)}°</span><span class="current-condition">${weatherIcon(current.code, current.isDay)}</span></div>
     <div class="astro-details">
       <div class="solar-times"><span aria-label="Sunrise ${formatSolarTime(today?.sunrise)}">${sunriseIcon}<span>Rise ${formatSolarTime(today?.sunrise)}</span></span><span aria-label="Sunset ${formatSolarTime(today?.sunset)}">${sunsetIcon}<span>Set ${formatSolarTime(today?.sunset)}</span></span></div>
       ${moonName ? `<div class="moon-phase" aria-label="Moon phase: ${moonName}, ${Math.round(moon.fraction * 100)} percent illuminated">${moonPhaseIcon(moon.phase)}<span>${moonName} · ${Math.round(moon.fraction * 100)}%</span></div>` : ''}
-    </div>
-    <div class="current-weather" aria-label="${Math.round(current.temperature)} degrees, ${weatherDescription(current.code)}"><span>${Math.round(current.temperature)}°</span>${weatherIcon(current.code, current.isDay)}</div>
-    <div class="forecast" style="--forecast-days:${weather.days.length}">${weather.days.map(d => `<div><div class="forecast-label">${d.date === board.date ? 'Today' : new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'UTC' }).format(new Date(d.date + 'T12:00:00Z'))}</div>${weatherIcon(d.code)}<div class="forecast-temps"><span>${Math.round(d.high)}</span><span>${Math.round(d.low)}</span></div></div>`).join('')}</div>
-    `;
+    </div>`;
 }
 function shuffle(items) { const list = [...items]; for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; } return list; }
 function resetPhotos() {
@@ -135,7 +133,7 @@ async function refresh() {
     $('guest-wifi').hidden = !board.guestWifi?.enabled;
     if (board.guestWifi?.enabled && !$('wifi-qr').getAttribute('src')) $('wifi-qr').src = '/guest-wifi.svg';
     document.documentElement.style.setProperty('--photo-width', `${board.display.photoPanelPercent}%`);
-    const calendarKey = JSON.stringify(board.calendar);
+    const calendarKey = JSON.stringify([board.calendar, board.weather.data?.days]);
     if (calendarKey !== lastCalendar) { renderCalendar(); lastCalendar = calendarKey; }
     const weatherKey = JSON.stringify([board.weather, board.status.weather, board.date]);
     if (weatherKey !== lastWeather) { renderWeather(); lastWeather = weatherKey; }

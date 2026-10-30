@@ -5,7 +5,6 @@ server:
 display:
   timezone: America/Chicago
   photoPanelPercent: 38
-  showSeconds: true
 photos:
   provider: google-shared-album
   albumUrl: ""

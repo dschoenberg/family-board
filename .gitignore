@@ -159,3 +159,4 @@ data/
 photos/*
 !photos/.gitkeep
 .DS_Store
+TODO.local.md
