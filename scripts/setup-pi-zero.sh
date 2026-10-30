@@ -48,11 +48,39 @@ if ! awk -v file="$ARCHIVE" '$2 == file { found = 1 } END { exit !found }' "$RUN
   echo "The ARMv6 archive is missing from $BASE_URL." >&2
   exit 1
 fi
-curl --fail --silent --show-error --location "$BASE_URL/$ARCHIVE" -o "$RUNTIME/$ARCHIVE"
 CHECKSUM="$(awk -v file="$ARCHIVE" '$2 == file { print $1 }' "$RUNTIME/SHASUMS256.txt")"
-( cd "$RUNTIME"; printf '%s  %s\n' "$CHECKSUM" "$ARCHIVE" | sha256sum --check --status )
+if [[ ! -f "$RUNTIME/$ARCHIVE" ]] || ! printf '%s  %s\n' "$CHECKSUM" "$RUNTIME/$ARCHIVE" | sha256sum --check --status; then
+  curl --fail --silent --show-error --location "$BASE_URL/$ARCHIVE" -o "$RUNTIME/$ARCHIVE.tmp"
+  printf '%s  %s\n' "$CHECKSUM" "$RUNTIME/$ARCHIVE.tmp" | sha256sum --check --status
+  mv "$RUNTIME/$ARCHIVE.tmp" "$RUNTIME/$ARCHIVE"
+fi
 tar -xJf "$RUNTIME/$ARCHIVE" -C "$RUNTIME"
-ln -sfn "$RUNTIME/${ARCHIVE%.tar.xz}" "$RUNTIME/node"
+NODE_DIR="$RUNTIME/${ARCHIVE%.tar.xz}"
+
+# This ARMv6 Node build uses GCC 12's libstdc++, while Buster has an older one.
+# Keep the matching library private to Family Board; the wrapper loads it for
+# Node only, so Chromium and the rest of the OS continue using system libraries.
+LIB_DIR="$RUNTIME/lib"
+LIB_FILE="$LIB_DIR/libstdc++.so.6.0.30"
+LIB_SHA256=3e2215edeed04268a02edde9fde9657cb6a462452694c07292acb37c5da4972b
+LIB_URL='https://raw.githubusercontent.com/rvagg/rpi-newer-crosstools/92391f65e888eb462ba84c032fa11b597963cdb6/x64-gcc-12.3.0-glibc-2.28/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/lib/libstdc++.so.6.0.30'
+mkdir -p "$LIB_DIR"
+if [[ ! -f "$LIB_FILE" ]] || ! printf '%s  %s\n' "$LIB_SHA256" "$LIB_FILE" | sha256sum --check --status; then
+  curl --fail --silent --show-error --location "$LIB_URL" -o "$LIB_FILE.tmp"
+  printf '%s  %s\n' "$LIB_SHA256" "$LIB_FILE.tmp" | sha256sum --check --status
+  mv "$LIB_FILE.tmp" "$LIB_FILE"
+fi
+ln -sfn libstdc++.so.6.0.30 "$LIB_DIR/libstdc++.so.6"
+mv "$NODE_DIR/bin/node" "$NODE_DIR/bin/node.real"
+cat > "$NODE_DIR/bin/node" <<'EOF'
+#!/bin/sh
+BIN_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
+RUNTIME_DIR="$(cd "$BIN_DIR/../.." && pwd -P)"
+export LD_LIBRARY_PATH="$RUNTIME_DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+exec "$BIN_DIR/node.real" "$@"
+EOF
+chmod 755 "$NODE_DIR/bin/node"
+ln -sfn "$NODE_DIR" "$RUNTIME/node"
 export PATH="$RUNTIME/node/bin:$PATH"
 node --version
 cd "$APP_DIR"

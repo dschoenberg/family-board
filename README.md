@@ -105,7 +105,7 @@ To temporarily leave kiosk mode, stop the launcher process (`pkill -f '[s]cripts
 
 ## Install on an original Pi Zero W
 
-Use `scripts/setup-pi-zero.sh` on a **32-bit ARMv6 Pi Zero or Zero W with Raspberry Pi OS Desktop and Chromium already installed**. This is a separate installer; the Pi 4/5 installer above keeps its 64-bit Node 24 setup. The Zero installer reuses your existing Chromium, installs a pinned community-built Node 22 ARMv6 binary under `.runtime/node` after checking its published SHA-256 checksum, and adds the kiosk launcher to the LXDE user autostart file. ARMv6 Node builds are [unofficial and minimally tested](https://unofficial-builds.nodejs.org/); verify the board on the actual device.
+Use `scripts/setup-pi-zero.sh` on a **32-bit ARMv6 Pi Zero or Zero W with Raspberry Pi OS Desktop and Chromium already installed**. This is a separate installer; the Pi 4/5 installer above keeps its 64-bit Node 24 setup. The Zero installer reuses your existing Chromium, installs a pinned community-built Node 22 ARMv6 binary under `.runtime/node` after checking its published SHA-256 checksum, and adds the kiosk launcher to the LXDE user autostart file. On Buster, it also installs the matching GCC 12 C++ runtime under `.runtime/lib` with a pinned checksum. A local Node launcher loads this private library without changing the system libraries or Chromium. ARMv6 Node builds are [unofficial and minimally tested](https://unofficial-builds.nodejs.org/); verify the board on the actual device.
 
 On the Zero W, clone the repository and create the private config as in steps 1–2 above. Check that `curl`, `git`, `tar`, `xz`, `sha256sum`, `flock`, and `timeout` are installed. Then run:
 
