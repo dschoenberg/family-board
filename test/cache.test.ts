@@ -58,3 +58,33 @@ test('saved album dates reach the display without exposing photo URLs', async ()
     assert.equal(JSON.stringify(displayed).includes('private-photo-url'), false);
   } finally { await rm(folder, { recursive: true, force: true }); }
 });
+
+test('failed photo refreshes back off and a successful refresh restores the normal interval', async () => {
+  const c = validateConfig(parse(await readFile(join(root, 'config.example.yml'), 'utf8')));
+  c.calendar.calendars = [];
+  const sources = new Sources(c);
+  const states = ['error', 'error', 'stale', 'error', 'ok'];
+  sources.photos.refresh = async () => { sources.photos.status.state = states.shift() ?? 'ok'; };
+  const timers: { callback: () => void; delay: number }[] = [];
+  const originalSetTimeout = globalThis.setTimeout;
+  globalThis.setTimeout = ((callback: () => void, delay: number) => {
+    timers.push({ callback, delay });
+    return {} as ReturnType<typeof setTimeout>;
+  }) as typeof setTimeout;
+  const settle = async () => { await Promise.resolve(); await Promise.resolve(); };
+  try {
+    sources.start();
+    await settle();
+    for (const expected of [2, 5, 15, 30]) {
+      const timer = timers.shift();
+      assert.ok(timer);
+      assert.equal(timer.delay, expected * 60000);
+      timer.callback();
+      await settle();
+    }
+    assert.equal(timers.shift()?.delay, c.photos.refreshEveryMinutes * 60000);
+  } finally {
+    sources.stop();
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});

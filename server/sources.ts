@@ -42,18 +42,24 @@ export class Sources {
     }
   }
   start() {
-    const schedule = (fn: () => Promise<void>, minutes: number) => {
+    const schedule = (fn: () => Promise<void>, minutes: number, nextDelay?: () => number) => {
       const run = async () => {
         try { await fn(); } catch { console.error('Background source refresh failed; retained previous data.'); }
         if (!this.stopped) {
-          const timer = setTimeout(() => { this.timers.delete(timer); void run(); }, minutes * 60000);
+          const timer = setTimeout(() => { this.timers.delete(timer); void run(); }, (nextDelay?.() ?? minutes) * 60000);
           this.timers.add(timer);
         }
       };
       void run();
     };
     for (const cal of this.config.calendar.calendars) schedule(() => this.refreshCalendar(cal), this.config.calendar.refreshEveryMinutes);
-    schedule(() => this.photos.refresh(), this.config.photos.refreshEveryMinutes);
+    let photoFailures = 0;
+    schedule(() => this.photos.refresh(), this.config.photos.refreshEveryMinutes, () => {
+      if (this.photos.status.state === 'ok') { photoFailures = 0; return this.config.photos.refreshEveryMinutes; }
+      photoFailures++;
+      const backoff = [2, 5, 15, 30][Math.min(photoFailures - 1, 3)];
+      return Math.min(backoff, this.config.photos.refreshEveryMinutes);
+    });
     if (this.config.weather.latitude !== null) schedule(() => this.refreshWeather(), this.config.weather.refreshEveryMinutes);
   }
   stop() { this.stopped = true; this.timers.forEach(clearTimeout); }

@@ -87,6 +87,8 @@ The installer enables the `family-board` systemd service, adds the kiosk launche
 
 At each boot, systemd waits for network startup, then `scripts/start-pi.sh` attempts a **fast-forward-only** Git pull. It retries briefly if Wi-Fi or DNS is not ready yet. If the network remains unavailable or tracked files have local edits, the board starts from the existing checkout. When `package-lock.json` has changed, the script runs `npm ci` with the local npm cache before starting the server. A failed package installation stops the service so systemd can retry; the private config and cached data are not reset. The kiosk waits for the local server before opening Chromium and restarts Chromium if it exits. Chromium uses its normal browser sandbox and a separate profile under `data/chromium`.
 
+If a photo album refresh fails, the board keeps downloaded photos visible and retries after 2 minutes, then 5, 15, and 30 minutes on continued failure (capped by the configured refresh interval). A successful refresh restores the normal interval. The service log reports refresh duration and photo count without logging album or image URLs.
+
 Configure monitor orientation/resolution in Raspberry Pi OS. The board uses the available screen dimensions. Landscape most closely matches the reference; a narrow browser window stacks the photo panel above the calendar for previewing on smaller screens.
 
 ```sh

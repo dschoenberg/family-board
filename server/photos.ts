@@ -34,6 +34,7 @@ export class PhotoStore {
     } catch { return []; }
   }
   async refresh() {
+    const started = Date.now();
     try {
       let photos: Photo[];
       if (this.config.photos.provider === 'local') photos = await this.localPhotos();
@@ -48,9 +49,11 @@ export class PhotoStore {
       await atomicWrite(join(this.directory, 'manifest.json'), JSON.stringify({ source: this.sourceKey(), updatedAt, photos }));
       this.photos = photos;
       this.status = { state: 'ok', updatedAt, count: photos.length, message: '' };
+      console.log(`Photos: updated ${photos.length} items in ${Math.round((Date.now() - started) / 1000)}s`);
     } catch {
       if (!this.photos.length) this.photos = await this.localPhotos();
       this.status = { ...this.status, state: this.photos.length ? 'stale' : 'error', count: this.photos.length, message: this.photos.length ? 'Photo refresh unavailable · using saved photos' : 'Photos unavailable · check album sharing or add local photos' };
+      console.error(`Photos: refresh failed after ${Math.round((Date.now() - started) / 1000)}s; private details omitted`);
     }
   }
   async availablePhotos() {
