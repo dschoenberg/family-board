@@ -7,6 +7,7 @@ import type { Config, CalendarConfig } from './config.ts';
 import { atomicWrite, hash, limitedBody, readJson } from './io.ts';
 import { getCalendar, parseCalendar, calendarDays } from './calendar.ts';
 import { PhotoStore } from './photos.ts';
+import { HardcoverStore } from './hardcover.ts';
 
 type Status = { state: string; updatedAt: string | null; message: string };
 type Weather = {
@@ -17,13 +18,14 @@ export class Sources {
   config: Config;
   dataDirectory: string;
   photos: PhotoStore;
+  hardcover: HardcoverStore;
   feeds = new Map<string, CalendarResponse>();
   statuses = new Map<string, Status>();
   weather: Weather | null = null;
   weatherStatus: Status = { state: 'unconfigured', updatedAt: null, message: 'Set your weather location in config.yml' };
   timers = new Set<ReturnType<typeof setTimeout>>();
   stopped = false;
-  constructor(config: Config, dataDirectory = join(root, 'data')) { this.config = config; this.dataDirectory = dataDirectory; this.photos = new PhotoStore(config, dataDirectory); }
+  constructor(config: Config, dataDirectory = join(root, 'data')) { this.config = config; this.dataDirectory = dataDirectory; this.photos = new PhotoStore(config, dataDirectory); this.hardcover = new HardcoverStore(config.hardcover, dataDirectory); }
   feedPath(cal: CalendarConfig) { return join(this.dataDirectory, `calendar-${hash(cal.icalUrl)}.json`); }
   weatherPath() { return join(this.dataDirectory, `weather-${hash(JSON.stringify(this.config.weather))}.json`); }
   async init() {
@@ -40,6 +42,7 @@ export class Sources {
       this.weather = savedWeather.data;
       this.weatherStatus = { state: 'cached', updatedAt: savedWeather.updatedAt, message: 'Using saved weather' };
     }
+    await this.hardcover.init();
   }
   start() {
     const schedule = (fn: () => Promise<void>, minutes: number, nextDelay?: () => number) => {
@@ -61,8 +64,9 @@ export class Sources {
       return Math.min(backoff, this.config.photos.refreshEveryMinutes);
     });
     if (this.config.weather.latitude !== null) schedule(() => this.refreshWeather(), this.config.weather.refreshEveryMinutes);
+    this.hardcover.start();
   }
-  stop() { this.stopped = true; this.timers.forEach(clearTimeout); }
+  stop() { this.stopped = true; this.timers.forEach(clearTimeout); this.hardcover.stop(); }
   async refreshCalendar(cal: CalendarConfig) {
     if (!cal.icalUrl) return;
     try {
@@ -106,6 +110,7 @@ export class Sources {
       calendar: { weeks: this.config.calendar.weeks, weekStartsOn: this.config.calendar.weekStartsOn, calendars: this.config.calendar.calendars.map(({ id, name, color }) => ({ id, name, color })), days: calendarDays(this.config, this.feeds) },
       photos: { items: await this.photos.availablePhotos(), changeEverySeconds: this.config.photos.changeEverySeconds, shuffle: this.config.photos.shuffle, fit: this.config.photos.fit },
       weather: { data: this.weather, temperatureUnit: this.config.weather.temperatureUnit, windSpeedUnit: this.config.weather.windSpeedUnit, moon: getMoonIllumination(new Date()) },
+      hardcover: { enabled: Boolean(this.config.hardcover?.enabled), items: this.hardcover.items, status: this.hardcover.status },
       guestWifi: { enabled: Boolean(this.config.guestWifi?.ssid) },
       status: { calendars: Object.fromEntries(this.statuses), photos: this.photos.status, weather: this.weatherStatus },
       date: DateTime.now().setZone(this.config.display.timezone).toISODate(),

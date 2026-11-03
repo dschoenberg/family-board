@@ -43,3 +43,7 @@ weather:
   windSpeedUnit: mph
   forecastDays: 4
   refreshEveryMinutes: 15
+hardcover:
+  enabled: false
+  apiToken: ""
+  refreshEveryHours: 24

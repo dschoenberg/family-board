@@ -118,9 +118,20 @@ function renderStatuses() {
     return s && s.state !== 'ok' ? `${cal.name}: ${s.message}${s.updatedAt ? ' (last updated ' + new Intl.DateTimeFormat('en-US', { timeZone: board.display.timezone, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(s.updatedAt)) + ')' : ''}` : '';
   }).filter(Boolean);
   if (['stale', 'error'].includes(board.status.weather.state)) problems.push(board.status.weather.message);
+  if (['stale', 'error'].includes(board.hardcover?.status?.state)) problems.push(board.hardcover.status.message);
   $('source-status').textContent = problems.join(' · ');
   $('source-status').title = problems.join('\n');
   $('photo-status').textContent = ['stale', 'error'].includes(board.status.photos.state) ? board.status.photos.message : '';
+}
+function renderHardcover() {
+  const card = $('hardcover');
+  const source = board.hardcover;
+  card.hidden = !source?.enabled;
+  if (!source?.enabled) return;
+  const content = source.items?.length
+    ? `<ol>${source.items.map(book => `<li><span class="book-title">${escape(book.title)}</span><span class="book-author">${escape(book.author)}</span></li>`).join('')}</ol>`
+    : `<p>${source.status.state === 'error' ? 'Books unavailable' : 'Loading books…'}</p>`;
+  card.innerHTML = `<h2>Trending on Hardcover <span>Past week</span></h2>${content}`;
 }
 async function refresh() {
   const controller = new AbortController();
@@ -139,6 +150,7 @@ async function refresh() {
     if (weatherKey !== lastWeather) { renderWeather(); lastWeather = weatherKey; }
     const photoKey = JSON.stringify(board.photos);
     if (photoKey !== lastPhotos) { resetPhotos(); lastPhotos = photoKey; }
+    renderHardcover();
     renderStatuses(); updateClock();
     $('connection').textContent = '';
   } catch { $('connection').textContent = 'Reconnecting…'; }

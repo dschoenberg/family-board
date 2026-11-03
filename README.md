@@ -34,6 +34,12 @@ Weather data: [Open-Meteo](https://open-meteo.com/), licensed under [CC BY 4.0](
 
 The lower-right calendar area can display a QR code that lets guests join your Wi-Fi. In the private `config.yml`, set `guestWifi.ssid` and `guestWifi.password`; use `security: WPA` for WPA2/WPA3 Personal or `security: nopass` for an open network. Set `hidden: true` only if the SSID is hidden. Leave `ssid` empty to hide the QR code. Restart the server after changing these settings. The QR code is generated locally and includes the Wi-Fi password in scannable form; anyone who can see it can join the guest network. The password is not included in `/api/board` or committed to Git.
 
+### Trending books (optional)
+
+Set `hardcover.enabled: true` and add a Hardcover API token to the private `config.yml` to show the top three books trending over the past week in a compact card at the top right of the photo panel. Create a token in [Hardcover API settings](https://hardcover.app/account/api) with the `read:catalog:data` scope. Put the token in `hardcover.apiToken` without `Bearer` (either form is accepted). Keep it out of Git. The token is used only by the server and is never sent to the browser.
+
+The default `hardcover.refreshEveryHours: 24` makes two GraphQL queries per refresh: one for the ranked book IDs and one for titles and authors. The last attempt time and results are stored under ignored `data/`, so restarts do not trigger extra requests before the interval passes. A failed refresh leaves the previous list visible and waits until the next configured interval. The refresh interval may be set from 6 to 168 hours. Omit the block, or set `enabled: false`, to hide the card and make no Hardcover requests.
+
 Shared calendar invitations appear once per day when their iCalendar UID and occurrence start match across configured calendars. The event displays a colored dot for each calendar it belongs to, and the hover text lists those calendar names. Distinct invitations with the same title stay separate. When copies have different details, the first calendar in configuration order supplies the displayed title and primary color; a later copy can fill a missing location.
 
 ### Photos

@@ -14,6 +14,7 @@ test('calendar data survives a restart and a failed refresh; source secrets stay
   try {
     const c = validateConfig(parse(await readFile(join(root, 'config.example.yml'), 'utf8')));
     c.calendar.calendars = [{ id: 'test', name: 'Test', color: '#123456', icalUrl: 'https://calendar.google.com/calendar/ical/private-test-secret/basic.ics' }];
+    c.hardcover = { enabled: true, apiToken: 'private-hardcover-test-token', refreshEveryHours: 24 };
     c.photos.provider = 'local'; c.photos.fallbackDirectory = folder;
     globalThis.fetch = async () => new Response('BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:cached\r\nDTSTART;VALUE=DATE:20261029\r\nDTEND;VALUE=DATE:20261030\r\nSUMMARY:Cached event\r\nEND:VEVENT\r\nEND:VCALENDAR');
     const first = new Sources(c, folder);
@@ -26,6 +27,7 @@ test('calendar data survives a restart and a failed refresh; source secrets stay
     assert.equal(restarted.feeds.get('test')?.cached?.type, 'VEVENT');
     const publicData = JSON.stringify(await restarted.board());
     assert.equal(publicData.includes('private-test-secret'), false);
+    assert.equal(publicData.includes('private-hardcover-test-token'), false);
     assert.equal(publicData.includes('icalUrl'), false);
   } finally { globalThis.fetch = originalFetch; await rm(folder, { recursive: true, force: true }); }
 });
