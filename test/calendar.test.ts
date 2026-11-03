@@ -45,6 +45,12 @@ test('calendar names, colors and duplicate IDs are validated without revealing l
   c.calendar.calendars[0].icalUrl = 'https://example.com/secret-token';
   assert.throws(() => validateConfig(c), error => error instanceof Error && !error.message.includes('secret-token'));
 });
+test('HTTPS sports iCal subscriptions are accepted', () => {
+  const c = structuredClone(config);
+  c.calendar.calendars[0].icalUrl = 'https://printdates.com/ics/mlb/minnesota-twins.ics';
+  c.calendar.calendars[1].icalUrl = 'https://content.mnufc.tech/calendars/MNUFC_2027_Sprint_Schedule.ics';
+  validateConfig(c);
+});
 test('Monday-start configuration uses the correct seven-day window', () => {
   const c = structuredClone(config);
   c.calendar.weekStartsOn = 'monday'; c.calendar.weeks = 1;

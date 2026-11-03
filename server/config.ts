@@ -56,8 +56,11 @@ export function validateConfig(value: unknown): Config {
     need(typeof cal.icalUrl === 'string', `${field}.icalUrl`);
     if (cal.icalUrl) {
       let valid = false;
-      try { const u = new URL(cal.icalUrl); valid = u.protocol === 'https:' && u.hostname === 'calendar.google.com' && u.pathname.endsWith('.ics'); } catch {}
-      need(valid, `${field}.icalUrl (Google HTTPS iCal feed)`);
+      try {
+        const u = new URL(cal.icalUrl);
+        valid = u.protocol === 'https:' && !!u.hostname && !u.username && !u.password && !u.port && u.pathname.endsWith('.ics');
+      } catch {}
+      need(valid, `${field}.icalUrl (HTTPS iCal feed)`);
     }
   }
   if (c.guestWifi !== undefined) {

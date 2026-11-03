@@ -20,7 +20,7 @@ Keep calendar feeds and photo album links in a private `config.yml`. That file, 
 
 Edit `config.yml`, then restart the server. On the Pi: `sudo systemctl restart family-board`.
 
-Each entry under `calendar.calendars` has a unique `id`, a display `name`, a six-digit hex `color`, and an `icalUrl`. Add further entries in the same format. In Google Calendar, get **Settings → your calendar → Integrate calendar → Secret address in iCal format**. Ordinary calendar page URLs do not work. An empty link disables that calendar's data and shows its configuration status.
+Each entry under `calendar.calendars` has a unique `id`, a display `name`, a six-digit hex `color`, and an `icalUrl`. Add further entries in the same format. The feed must be an HTTPS URL ending in `.ics`; embedded calendar pages and one-time downloads are not live feeds. In Google Calendar, get **Settings → your calendar → Integrate calendar → Secret address in iCal format**. An empty link disables that calendar's data and shows its configuration status. Other HTTPS iCal subscriptions, including sports schedules, also work.
 
 Event locations are hidden by default. Set `calendar.showLocation: true` in `config.yml` if you want them shown beneath event titles and in hover text.
 
