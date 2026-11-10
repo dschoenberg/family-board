@@ -40,6 +40,12 @@ Set `hardcover.enabled: true` and add a Hardcover API token to the private `conf
 
 The default `hardcover.refreshEveryHours: 24` makes two GraphQL queries per refresh: one for the ranked book IDs and one for titles and authors. The last attempt time and results are stored under ignored `data/`, so restarts do not trigger extra requests before the interval passes. A failed refresh leaves the previous list visible and waits until the next configured interval. The refresh interval may be set from 6 to 168 hours. Omit the block, or set `enabled: false`, to hide the card and make no Hardcover requests.
 
+### Daily celebration
+
+Set `dailyObservance.enabled: true` with `file: ./observances.yml` to show one playful observance for today in a small photo-side card. The tracked [observances.yml](observances.yml) contains two choices for every month/day, including February 29. It draws on [Digital Hygge's public school-year list](https://digitalhygge.com/national-days-calendar-school-year/) and [Obscure Holiday Calendar's index](https://www.obscureholidaycalendar.com/holiday/); the older 2025 library newsletter points to Digital Hygge. Only names and dates are retained, with no descriptions or images.
+
+The first choice displays in 2026, the second in 2027, then they alternate in later years. February 29 alternates on successive leap-day occurrences. The board chooses by `display.timezone` and needs no daily network request. Edit the two names for any date to change its rotation. Dates marked as moving in the source lists were left out of this fixed-date file; they need a calendar rule to stay accurate in future years. Set `enabled: false` or omit the block to hide the card.
+
 Shared calendar invitations appear once per day when their iCalendar UID and occurrence start match across configured calendars. The event displays a colored dot for each calendar it belongs to, and the hover text lists those calendar names. Distinct invitations with the same title stay separate. When copies have different details, the first calendar in configuration order supplies the displayed title and primary color; a later copy can fill a missing location.
 
 ### Photos

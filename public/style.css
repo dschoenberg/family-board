@@ -27,7 +27,8 @@ body.mouse-active { cursor: auto; }
 .current-condition { display: inline-flex; align-items: center; }
 .current-condition svg { height: 1.1em; width: 1.1em; }
 .photo-status { position: absolute; top: .6vh; left: 1vw; right: 50%; font-size: 10px; color: #ddd; text-align: left; }
-.hardcover-card { position: absolute; z-index: 2; top: 1.4vh; right: 1vw; width: min(34vw, 260px); max-height: 42vh; overflow: hidden; padding: 12px 14px; border: 1px solid #ffffff30; border-radius: 9px; background: #101211d9; box-shadow: 0 4px 20px #0007; text-shadow: 0 1px 3px #000b; }
+.photo-cards { position: absolute; z-index: 2; top: 1.4vh; right: 1vw; display: flex; flex-direction: column; gap: .8vh; width: min(34vw, 260px); max-height: 60vh; }
+.hardcover-card { max-height: 42vh; overflow: hidden; padding: 12px 14px; border: 1px solid #ffffff30; border-radius: 9px; background: #101211d9; box-shadow: 0 4px 20px #0007; text-shadow: 0 1px 3px #000b; }
 .hardcover-card[hidden] { display: none; }
 .hardcover-card h2 { display: flex; align-items: baseline; justify-content: space-between; gap: .5em; margin: 0 0 8px; font-size: clamp(12px, .95vw, 17px); font-weight: 500; }
 .hardcover-card h2 span { font-size: .72em; font-weight: 300; color: #bbb; white-space: nowrap; }
@@ -36,6 +37,10 @@ body.mouse-active { cursor: auto; }
 .book-title, .book-author { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .book-author { margin-top: 1px; font-size: .85em; color: #c1c4c1; }
 .hardcover-card p { margin: 0; font-size: 12px; color: #c1c4c1; }
+.observance-card { padding: 10px 14px; border: 1px solid #ffffff30; border-radius: 9px; background: #101211d9; box-shadow: 0 4px 20px #0007; text-shadow: 0 1px 3px #000b; }
+.observance-card[hidden] { display: none; }
+.observance-card h2 { margin: 0 0 4px; color: #c1c4c1; font-size: clamp(10px, .72vw, 12px); font-weight: 400; letter-spacing: .1em; text-transform: uppercase; }
+.observance-card p { margin: 0; font-size: clamp(12px, .95vw, 17px); font-weight: 500; line-height: 1.2; }
 .calendar-panel { position: relative; min-width: 0; min-height: 0; overflow: hidden; display: grid; grid-template-rows: 5.2vh minmax(0,1fr) 2.6vh; background: #000; padding: 0 .6vw; }
 .wifi-card { position: absolute; z-index: 2; right: 1.4vw; bottom: 1.5vh; width: clamp(72px, 5.5vw, 103px); padding: 4px; background: #fff; color: #111; text-align: center; box-shadow: 0 3px 18px #000b; pointer-events: none; }
 .wifi-card[hidden] { display: none; }
@@ -80,6 +85,8 @@ body.mouse-active { cursor: auto; }
   .day-date .day-number { font-size: 3.2vh; }
   .event { font-size: 12px; }
   .current-weather { font-size: 3.2vh; margin: 0 0 .4vh; }
-  .hardcover-card { top: 1vh; right: 2vw; width: min(48vw, 220px); padding: 8px 10px; }
+  .photo-cards { top: 1vh; right: 2vw; width: min(48vw, 220px); max-height: 30vh; }
+  .hardcover-card { max-height: 18vh; padding: 8px 10px; }
+  .observance-card { padding: 7px 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .photo-stage img { transition: none; } }

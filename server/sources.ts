@@ -8,6 +8,8 @@ import { atomicWrite, hash, limitedBody, readJson } from './io.ts';
 import { getCalendar, parseCalendar, calendarDays } from './calendar.ts';
 import { PhotoStore } from './photos.ts';
 import { HardcoverStore } from './hardcover.ts';
+import { loadObservances, dailyObservance } from './observances.ts';
+import type { ObservanceFile } from './observances.ts';
 
 type Status = { state: string; updatedAt: string | null; message: string };
 type Weather = {
@@ -19,13 +21,14 @@ export class Sources {
   dataDirectory: string;
   photos: PhotoStore;
   hardcover: HardcoverStore;
+  observances: ObservanceFile | null;
   feeds = new Map<string, CalendarResponse>();
   statuses = new Map<string, Status>();
   weather: Weather | null = null;
   weatherStatus: Status = { state: 'unconfigured', updatedAt: null, message: 'Set your weather location in config.yml' };
   timers = new Set<ReturnType<typeof setTimeout>>();
   stopped = false;
-  constructor(config: Config, dataDirectory = join(root, 'data')) { this.config = config; this.dataDirectory = dataDirectory; this.photos = new PhotoStore(config, dataDirectory); this.hardcover = new HardcoverStore(config.hardcover, dataDirectory); }
+  constructor(config: Config, dataDirectory = join(root, 'data')) { this.config = config; this.dataDirectory = dataDirectory; this.photos = new PhotoStore(config, dataDirectory); this.hardcover = new HardcoverStore(config.hardcover, dataDirectory); this.observances = config.dailyObservance?.enabled ? loadObservances(config.dailyObservance.file) : null; }
   feedPath(cal: CalendarConfig) { return join(this.dataDirectory, `calendar-${hash(cal.icalUrl)}.json`); }
   weatherPath() { return join(this.dataDirectory, `weather-${hash(JSON.stringify(this.config.weather))}.json`); }
   async init() {
@@ -105,15 +108,17 @@ export class Sources {
     } catch { this.weatherStatus = { ...this.weatherStatus, state: this.weather ? 'stale' : 'error', message: this.weather ? 'Weather refresh unavailable · using saved forecast' : 'Weather temporarily unavailable' }; }
   }
   async board() {
+    const today = DateTime.now().setZone(this.config.display.timezone);
     return {
       display: this.config.display,
       calendar: { weeks: this.config.calendar.weeks, weekStartsOn: this.config.calendar.weekStartsOn, calendars: this.config.calendar.calendars.map(({ id, name, color }) => ({ id, name, color })), days: calendarDays(this.config, this.feeds) },
       photos: { items: await this.photos.availablePhotos(), changeEverySeconds: this.config.photos.changeEverySeconds, shuffle: this.config.photos.shuffle, fit: this.config.photos.fit },
       weather: { data: this.weather, temperatureUnit: this.config.weather.temperatureUnit, windSpeedUnit: this.config.weather.windSpeedUnit, moon: getMoonIllumination(new Date()) },
       hardcover: { enabled: Boolean(this.config.hardcover?.enabled), items: this.hardcover.items, status: this.hardcover.status },
+      dailyObservance: { enabled: Boolean(this.observances), item: this.observances ? dailyObservance(this.observances, today) : null },
       guestWifi: { enabled: Boolean(this.config.guestWifi?.ssid) },
       status: { calendars: Object.fromEntries(this.statuses), photos: this.photos.status, weather: this.weatherStatus },
-      date: DateTime.now().setZone(this.config.display.timezone).toISODate(),
+      date: today.toISODate(),
     };
   }
 }

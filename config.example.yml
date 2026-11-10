@@ -47,3 +47,6 @@ hardcover:
   enabled: false
   apiToken: ""
   refreshEveryHours: 24
+dailyObservance:
+  enabled: true
+  file: ./observances.yml

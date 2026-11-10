@@ -5,6 +5,7 @@ import { DateTime } from 'luxon';
 
 export type CalendarConfig = { id: string; name: string; color: string; icalUrl: string };
 export type HardcoverConfig = { enabled: boolean; apiToken: string; refreshEveryHours: number };
+export type DailyObservanceConfig = { enabled: boolean; file: string };
 export type Config = {
   server: { host: string; port: number };
   display: { timezone: string; photoPanelPercent: number };
@@ -13,6 +14,7 @@ export type Config = {
   guestWifi?: { ssid: string; password: string; security: 'WPA' | 'nopass'; hidden: boolean };
   weather: { latitude: number | null; longitude: number | null; temperatureUnit: 'fahrenheit' | 'celsius'; windSpeedUnit: 'mph' | 'kmh'; forecastDays: number; refreshEveryMinutes: number };
   hardcover?: HardcoverConfig;
+  dailyObservance?: DailyObservanceConfig;
 };
 
 export const root = resolve(import.meta.dirname, '..');
@@ -85,6 +87,11 @@ export function validateConfig(value: unknown): Config {
     need(typeof books.apiToken === 'string', 'hardcover.apiToken');
     need(Number.isInteger(books.refreshEveryHours) && range(books.refreshEveryHours, 6, 168), 'hardcover.refreshEveryHours');
     if (books.enabled) need(books.apiToken.trim().length > 0, 'hardcover.apiToken');
+  }
+  if (c.dailyObservance !== undefined) {
+    const observance = c.dailyObservance;
+    need(observance && typeof observance.enabled === 'boolean', 'dailyObservance.enabled');
+    need(typeof observance.file === 'string' && observance.file.trim().length > 0, 'dailyObservance.file');
   }
   return c;
 }

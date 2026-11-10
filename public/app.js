@@ -133,6 +133,13 @@ function renderHardcover() {
     : `<p>${source.status.state === 'error' ? 'Books unavailable' : 'Loading books…'}</p>`;
   card.innerHTML = `<h2>Trending on Hardcover <span>Past week</span></h2>${content}`;
 }
+function renderDailyObservance() {
+  const card = $('daily-observance');
+  const item = board.dailyObservance?.item;
+  card.hidden = !board.dailyObservance?.enabled || !item;
+  if (card.hidden) return;
+  card.innerHTML = `<h2>Today’s celebration</h2><p>${escape(item.name)}</p>`;
+}
 async function refresh() {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60000);
@@ -151,6 +158,7 @@ async function refresh() {
     const photoKey = JSON.stringify(board.photos);
     if (photoKey !== lastPhotos) { resetPhotos(); lastPhotos = photoKey; }
     renderHardcover();
+    renderDailyObservance();
     renderStatuses(); updateClock();
     $('connection').textContent = '';
   } catch { $('connection').textContent = 'Reconnecting…'; }
