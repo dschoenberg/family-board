@@ -16,12 +16,13 @@ test('all-day dates stay on their named days and DTEND is exclusive', () => {
   const days = daysFor(calendar(event('multi-day-event', 'DTSTART;VALUE=DATE:20261031\nDTEND;VALUE=DATE:20261103\nSUMMARY:Multi-day Event')));
   assert.deepEqual(days.filter(d => d.events.length).map(d => d.date), ['2026-10-31', '2026-11-01', '2026-11-02']);
   assert.deepEqual(days.flatMap(d => d.events.map(e => [e.day, e.totalDays, e.allDay])), [[1,3,true],[2,3,true],[3,3,true]]);
+  assert.ok(days.flatMap(d => d.events).every(e => e.time === ''));
 });
 test('weekly local times survive the daylight-saving transition', () => {
   const days = daysFor(calendar(event('weekly-event', 'DTSTART;TZID=America/Chicago:20261026T184500\nDTEND;TZID=America/Chicago:20261026T194500\nRRULE:FREQ=WEEKLY;COUNT=3\nSUMMARY:Weekly Event')));
   const events = days.flatMap(d => d.events);
   assert.equal(events.length, 3);
-  assert.deepEqual(events.map(e => e.time), ['6:45p','6:45p','6:45p']);
+  assert.deepEqual(events.map(e => e.time), ['6:45p–7:45p','6:45p–7:45p','6:45p–7:45p']);
   assert.match(events[0].start, /-05:00$/);
   assert.match(events[1].start, /-06:00$/);
 });
@@ -31,11 +32,12 @@ test('EXDATE, a moved occurrence, and a canceled occurrence are honored', () => 
     event('weekly', 'RECURRENCE-ID;TZID=America/Chicago:20261102T090000\nDTSTART;TZID=America/Chicago:20261103T110000\nDTEND;TZID=America/Chicago:20261103T120000\nSUMMARY:Moved'),
     event('weekly', 'RECURRENCE-ID;TZID=America/Chicago:20261109T090000\nDTSTART;TZID=America/Chicago:20261109T090000\nDTEND;TZID=America/Chicago:20261109T100000\nSTATUS:CANCELLED\nSUMMARY:Canceled'),
   ));
-  assert.deepEqual(days.filter(d => d.events.length).map(d => [d.date, d.events[0].title, d.events[0].time]), [['2026-11-03', 'Moved', '11a']]);
+  assert.deepEqual(days.filter(d => d.events.length).map(d => [d.date, d.events[0].title, d.events[0].time]), [['2026-11-03', 'Moved', '11a–12p']]);
 });
 test('overnight events appear on both days but a midnight end adds no extra day', () => {
   const days = daysFor(calendar(event('night', 'DTSTART:20261030T040000Z\nDTEND:20261031T050000Z\nSUMMARY:Overnight')));
   assert.deepEqual(days.filter(d => d.events.length).map(d => d.date), ['2026-10-29','2026-10-30']);
+  assert.deepEqual(days.flatMap(d => d.events.map(e => e.time)), ['11p–12a', '11p–12a']);
 });
 test('calendar names, colors and duplicate IDs are validated without revealing links', () => {
   const c = structuredClone(config);

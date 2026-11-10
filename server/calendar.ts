@@ -8,6 +8,7 @@ export function parseCalendar(text: string) {
   return ical.sync.parseICS(text);
 }
 const plain = (value?: ParameterValue) => typeof value === 'string' ? value : value?.val ?? '';
+const clockTime = (date: DateTime) => date.toFormat(date.minute === 0 ? 'ha' : 'h:mma').toLowerCase().replace('am', 'a').replace('pm', 'p');
 export type DisplayEvent = { id: string; calendarId: string; calendars: { id: string; name: string; color: string }[]; title: string; location: string; color: string; allDay: boolean; time: string; start: string; day: number; totalDays: number };
 export function calendarWindow(config: Config, now: DateTime = DateTime.now()) {
   const today = now.setZone(config.display.timezone).startOf('day');
@@ -60,7 +61,7 @@ export function calendarDays(config: Config, feeds: Map<string, CalendarResponse
             calendarId: cal.id, title: plain(instance.summary) || '(Untitled)',
             location: config.calendar.showLocation ? plain(instance.event.location) : '',
             color: cal.color, allDay: instance.isFullDay,
-            time: instance.isFullDay ? '' : start < d ? '↳' : start.toFormat(start.minute === 0 ? 'ha' : 'h:mma').toLowerCase().replace('am', 'a').replace('pm', 'p'),
+            time: instance.isFullDay ? '' : `${clockTime(start)}–${clockTime(end)}`,
             start: start.toISO()!, day: Math.round(d.diff(start.startOf('day'), 'days').days) + 1, totalDays,
           });
         }
