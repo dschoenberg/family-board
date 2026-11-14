@@ -2,7 +2,8 @@ import { weatherIcon, weatherDescription, sunriseIcon, sunsetIcon, formatSolarTi
 import { visibleWeekCount } from './calendar-fit.js';
 
 const $ = id => document.getElementById(id);
-let board, lastCalendar = '', lastWeather = '', lastPhotos = '', photoQueue = [], photoIndex = 0, photoTimer, activePhoto = 0, showingPhotoId = '', photoBusy = false;
+let board, lastCalendar = '', lastWeather = '', lastPhotos = '', photoQueue = [], photoIndex = 0, photoTimer, activePhoto = -1, showingPhotoId = '', photoBusy = false;
+const photoFadeMs = 1200;
 let calendarFitFrame;
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 function updateClock() {
@@ -77,14 +78,57 @@ function renderWeather() {
     </div>`;
 }
 function shuffle(items) { const list = [...items]; for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; } return list; }
+function schedulePhotoChange(seconds = board.photos.changeEverySeconds) {
+  clearTimeout(photoTimer);
+  const progress = $('photo-progress');
+  progress.hidden = !showingPhotoId || photoQueue.length < 2;
+  if (!progress.hidden) {
+    progress.style.animation = 'none';
+    void progress.offsetWidth;
+    progress.style.animation = `photo-countdown ${seconds}s linear forwards`;
+    photoTimer = setTimeout(() => void nextPhoto(), seconds * 1000);
+  } else if (photoQueue.length && (!showingPhotoId || photoQueue[0].id !== showingPhotoId)) {
+    photoTimer = setTimeout(() => void nextPhoto(), 10000);
+  }
+}
+function revealPhoto(target, previous) {
+  target.classList.remove('active');
+  target.style.zIndex = '2';
+  if (!previous) {
+    target.style.transition = 'none';
+    target.classList.add('active');
+    void target.offsetWidth;
+    target.style.transition = '';
+    return Promise.resolve();
+  }
+  previous.style.zIndex = '1';
+  void target.offsetWidth;
+  target.classList.add('active');
+  return new Promise(resolve => {
+    let finished = false;
+    let fallback;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      target.removeEventListener('transitionend', onEnd);
+      clearTimeout(fallback);
+      previous.classList.remove('active');
+      resolve();
+    };
+    const onEnd = event => { if (event.propertyName === 'opacity') finish(); };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { finish(); return; }
+    target.addEventListener('transitionend', onEnd);
+    fallback = setTimeout(finish, photoFadeMs + 200);
+  });
+}
 function resetPhotos() {
   photoQueue = board.photos.shuffle ? shuffle(board.photos.items) : [...board.photos.items];
   photoIndex = 0;
   document.querySelectorAll('.photo-stage img').forEach(img => { img.style.objectFit = board.photos.fit; });
-  clearInterval(photoTimer);
-  if (!photoQueue.length) { $('photo-message').textContent = 'Photos are on their way'; return; }
-  if (!showingPhotoId) void nextPhoto();
-  photoTimer = setInterval(nextPhoto, board.photos.changeEverySeconds * 1000);
+  clearTimeout(photoTimer);
+  if (!photoQueue.length) { $('photo-progress').hidden = true; $('photo-message').textContent = 'Photos are on their way'; return; }
+  if (!showingPhotoId || (photoQueue.length === 1 && showingPhotoId !== photoQueue[0].id)) void nextPhoto();
+  else schedulePhotoChange();
 }
 async function nextPhoto() {
   if (photoBusy || !photoQueue.length) return;
@@ -97,9 +141,9 @@ async function nextPhoto() {
       const target = $(activePhoto === 0 ? 'photo-b' : 'photo-a');
       target.src = item.src;
       try { await target.decode(); } catch { continue; }
-      $(activePhoto === 0 ? 'photo-a' : 'photo-b').classList.remove('active');
-      target.classList.add('active');
-      activePhoto = 1 - activePhoto;
+      const previous = activePhoto < 0 ? null : $(activePhoto === 0 ? 'photo-a' : 'photo-b');
+      await revealPhoto(target, previous);
+      activePhoto = activePhoto === 0 ? 1 : 0;
       showingPhotoId = item.id;
       $('photo-date').textContent = Number.isFinite(item.date) && item.date > 0
         ? new Intl.DateTimeFormat('en-US', { timeZone: board.display.timezone, month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(item.date))
@@ -110,7 +154,7 @@ async function nextPhoto() {
       return;
     }
     if (!showingPhotoId) $('photo-message').textContent = 'Waiting for photos';
-  } finally { photoBusy = false; }
+  } finally { photoBusy = false; schedulePhotoChange(); }
 }
 function renderStatuses() {
   const problems = board.calendar.calendars.map(cal => {

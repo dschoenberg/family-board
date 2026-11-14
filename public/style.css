@@ -6,9 +6,12 @@ body.mouse-active { cursor: auto; }
 #board { height: 100vh; height: 100dvh; width: 100vw; display: grid; grid-template-columns: var(--photo-width) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
 .photo-panel { position: relative; min-height: 0; overflow: hidden; isolation: isolate; background: #252623; }
 .photo-stage, .shade { position: absolute; inset: 0; z-index: -1; }
-.photo-stage img { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: contain; object-position: center top; opacity: 0; transition: opacity 1.6s ease; }
+.photo-stage img { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: contain; object-position: center top; opacity: 0; transition: opacity 1.2s ease; }
 .photo-stage img.active { opacity: 1; }
 .shade { background: linear-gradient(180deg, #0005 0%, #0001 32%, #0003 50%, #0008 80%, #000b 100%); }
+.photo-progress { position: absolute; top: 0; left: 0; z-index: 3; width: 100%; height: 3px; background: #fffd; box-shadow: 0 1px 5px #0008; transform-origin: left; pointer-events: none; }
+.photo-progress[hidden] { display: none; }
+@keyframes photo-countdown { to { transform: scaleX(0); } }
 .photo-overlay { position: absolute; z-index: 1; left: 1.5vw; right: 1.5vw; bottom: 2.3vh; display: flex; flex-direction: column; align-items: flex-start; gap: .4vh; text-shadow: 0 1px 5px #0008; }
 .clock-block { text-align: left; }
 .clock { line-height: .98; white-space: nowrap; font-size: clamp(38px, 6vw, 8.5vh); font-weight: 200; letter-spacing: -.055em; font-variant-numeric: tabular-nums; }
