@@ -13,7 +13,7 @@ export function loadObservances(file: string): ObservanceFile {
   if (!Number.isInteger(value.yearBase)) throw new Error('Invalid daily observances yearBase');
   for (const [date, choices] of Object.entries(value.days)) {
     const validDate = /^\d{2}-\d{2}$/.test(date) && DateTime.fromISO(`2024-${date}`).isValid;
-    if (!validDate || !Array.isArray(choices) || choices.length < 2 || choices.some(name => typeof name !== 'string' || !name.trim())) {
+    if (!validDate || !Array.isArray(choices) || choices.length < 1 || choices.some(name => typeof name !== 'string' || !name.trim())) {
       throw new Error(`Invalid daily observance entry: ${date}`);
     }
   }

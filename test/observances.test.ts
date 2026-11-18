@@ -9,11 +9,18 @@ import { join } from 'node:path';
 
 const data = loadObservances('./observances.yml');
 
-test('every calendar date has two distinct local choices', () => {
+test('every calendar date has a choice and rotating choices are distinct', () => {
   assert.equal(Object.keys(data.days).length, 366);
   for (const choices of Object.values(data.days)) {
-    assert.equal(choices.length, 2);
-    assert.notEqual(choices[0], choices[1]);
+    assert.ok(choices.length >= 1);
+    assert.equal(new Set(choices).size, choices.length);
+  }
+});
+
+test('May 20 always celebrates barnacles', () => {
+  assert.deepEqual(data.days['05-20'], ['Barnacle Appreciation Day']);
+  for (const year of [2026, 2027, 2028, 2032]) {
+    assert.equal(dailyObservance(data, DateTime.fromISO(`${year}-05-20`))?.name, 'Barnacle Appreciation Day');
   }
 });
 

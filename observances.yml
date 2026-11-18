@@ -1,4 +1,4 @@
-# Two playful choices for each month/day; the board alternates them each calendar year.
+# Choices for each month/day alternate each calendar year; a single choice stays fixed.
 # The 2026 choice is first. Dates marked as moving in the source lists were omitted.
 yearBase: 2026
 sources:
@@ -145,7 +145,7 @@ days:
   "05-17": ["Walnut Day", "Pack Rat Day"]
   "05-18": ["No Dirty Dishes Day", "Visit Your Relatives Day"]
   "05-19": ["Plant Something Day", "May-Ray Day"]
-  "05-20": ["Streaming Day", "Be a Millionaire Day"]
+  "05-20": ["Barnacle Appreciation Day"]
   "05-21": ["International Tea Day", "I Need a Patch for That Day"]
   "05-22": ["Sherlock Holmes Day", "Buy a Musical Instrument Day"]
   "05-23": ["World Turtle Day", "Lucky Penny Day"]
